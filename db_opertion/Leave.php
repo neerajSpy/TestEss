@@ -69,12 +69,12 @@ class Leave
     }
 
    
-    function approveLeave($leaveRequestId, $approvedById)
+    function approveLeave($leaveRequestId, $approvedById,$remark = null)
     {
         $leaveDataArray = $this->getLeaveData($leaveRequestId);
         $leaveType = $this->getLeveType($leaveDataArray['leave_type_id']);
         if ($this->isSufficientLeave($leaveDataArray['user_id'],$leaveType,$leaveDataArray['start_date'],$leaveDataArray['end_date'],$leaveDataArray['duration'])) {
-            $result = $this->updateLeaveRequestStatus($leaveRequestId, $approvedById, $this->leaveStatusIdArray['approved']);
+            $result = $this->updateLeaveRequestStatus($leaveRequestId, $approvedById, $this->leaveStatusIdArray['approved'],$remark);
             if ($result === TRUE) {
                 $entitledResult = $this->updateEntitlement($leaveRequestId, $approvedById);
                 if ($entitledResult === TRUE) {
@@ -86,7 +86,16 @@ class Leave
         }
         return INSUFFICIENT_LEAVE;
     }
-    
+
+
+    function cancelLeaveRequest($leaveRequestId,$userId){
+        return $this->updateLeaveRequestStatus($leaveRequestId,$userId,$this->leaveStatusIdArray['cancelled'],null);
+    }
+
+    function rejectLeaveRequest($leaveRequestId,$userId,$remark){
+        return $this->updateLeaveRequestStatus($leaveRequestId, $userId, $this->leaveStatusIdArray['rejected'],$remark);
+    }
+
     function leaveRequest($leaveJson){
         return $this->proceedLeave($leaveJson,$this->leaveStatusIdArray['pending']);
     }
@@ -170,9 +179,16 @@ class Leave
         }
     }
 
-    function updateLeaveRequestStatus($leaveRequestId, $approvedById, $statusId)
+    function updateLeaveRequestStatus($leaveRequestId, $approvedById, $statusId,$remark = null)
     {
-        $this->con->query("UPDATE `user_leave_request` set `leave_status_id` = '$statusId', `status_by_id` = '$approvedById', `status_date` = '$this->date' where `id` = '$leaveRequestId' ");
+        if ($remark == null){
+            $sqlQuery = "UPDATE `user_leave_request` set `leave_status_id` = '$statusId', `status_by_id` = '$approvedById', `status_date` = 
+            '$this->date' where `id` = '$leaveRequestId'";
+        }else{
+            $sqlQuery = "UPDATE `user_leave_request` set `leave_status_id` = '$statusId',`status_description` = '$remark', `status_by_id` = '$approvedById', `status_date` = 
+            '$this->date' where `id` = '$leaveRequestId'";
+        }
+        $this->con->query($sqlQuery);
         return $this->con->affected_rows > 0;
     }
 
