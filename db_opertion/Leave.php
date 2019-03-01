@@ -2,7 +2,7 @@
 
 // namespace db_opertion;
 /* error_reporting(E_ALL);
-ini_set('display_errors', 1); */
+ini_set('display_errors', 1);*/
 
 class Leave
 {
@@ -214,10 +214,9 @@ class Leave
         $totalLeaves = $this->countUserLeaveAquireDays($startDate, $endDate, $durationValue);
         $totalDays = $this->getTotalLeaveDays($startDate, $endDate);
 
-        $result = $this->con->query("INSERT into `user_leave_request` (`user_id`,`leave_type_id`,`total_days`,
-        `total_leaves`,`leave_location`,`reason`,`description`,`leave_status_id`,`applied_by_id`,`applied_date`) 
-        VALUES ('$userId','$leaveTypeId','$totalDays','$totalLeaves','$leaveLocation','$reason','$description',
-        '$status','$createdById','$this->date')");
+        $result = $this->con->query("INSERT into `user_leave_request` (`user_id`,`leave_type_id`,`total_days`,`start_date`,`end_date`,`duration`,
+        `total_leaves`,`leave_location`,`reason`,`description`,`leave_status_id`,`applied_by_id`,`applied_date`) VALUES ('$userId',
+         '$leaveTypeId','$totalDays','$totalLeaves','$startDate','$endDate','$durationValue','$leaveLocation','$reason','$description','$status','$createdById','$this->date')");
 
         if ($result === TRUE) {
             return $this->con->insert_id;
