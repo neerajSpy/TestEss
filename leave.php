@@ -66,8 +66,7 @@ else if (strtolower($action) == 'assign_leave') {
         $db = new Leave();
         $response = array();
         $result = $db->assignLeave($leaveJson);
-        
-        
+
         $response = array();
         if ($result == EXIST) {
             $response['error'] = TRUE;
@@ -96,37 +95,30 @@ else if (strtolower($action) == 'assign_leave') {
 }
 
 else if (strtolower($action) == 'approve_leave') {
-    if (! checkMandatoryParameter(array('action','leave_json'))) {
+    if (! checkMandatoryParameter(array('action'))) {
         
-        $leaveJson = json_decode($_POST['leave_json']);
+        $leaveRequestId = $_POST['id'];
+        $userId = $_POST['user_id'];
+        $approvedById = $_POST['modified_by_id'];
         $db = new Leave();
         $response = array();
-        $result = $db->assignLeave($leaveJson);
-        
-        
+        $result = $db->approveLeave($leaveRequestId,$approvedById);
         $response = array();
-        if ($result == EXIST) {
+        if ($result == QUERY_PROBLEM) {
             $response['error'] = TRUE;
-            $response['message'] = "Duplicate leave";
-        } else if ($result == QUERY_PROBLEM || $result == 0) {
+            $response['message'] = "Leave request not approved";
+        } else if ($result == INSUFFICIENT_LEAVE ) {
             $response['error'] = TRUE;
-            $response['message'] = "Leave request not saved";
-        }else if ($result == INSUFFICIENT_LEAVE ) {
-            $response['error'] = TRUE;
-            $response['message'] = "Insufficient leave";
+            $response['message'] = "Insufficient_leave";
         }else {
             $response['error'] = FALSE;
             $response['message'] = "Successfully Saved";
             
             include "db_class/SendNotification.php";
             $notificationDb = new SendNotification();
-            $notificationArr = array(
-                "leave_type" => $leaveJson->leave_type
-                
-            );
-            $notificationDb->sendNotificationToUser($leaveJson->user_id, $leaveJson->created_by_id,'Assign Leave', $notificationArr);
+            $notificationArr = array();
+            $notificationDb->sendNotificationToUser($userId, $approvedById,'Approve Leave', $notificationArr);
         }
-        
         echo json_encode($response);
     }
 }

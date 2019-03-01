@@ -15,10 +15,6 @@ define('DEACTIVE','1');
 define('INVALID_FILE','-5');
 define('EXCEED_FILE_SIZE','-6');
 define('INSUFFICIENT_LEAVE','-7');
-
-
-
-
 define('UNAUTHORISED_USER','0');
 
 
