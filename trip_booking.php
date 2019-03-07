@@ -33,7 +33,7 @@ if (strtolower($action) == 'booking_request') {
             
             include_once 'db_class/SendMail.php';
             $mailDb = new SendMail();
-            $mailDb->bookingRequestMail($tripBookingJson->trip_id, $result, $tripBookingJson->user_booking_mode, $tripBookingJson->created_by_id,$tripBookingJson->trip_booking_member);
+            $mailDb->bookingRequestMail($result, $tripBookingJson);
         }
 
         echo json_encode($response);

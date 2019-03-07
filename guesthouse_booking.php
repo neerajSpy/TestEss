@@ -7,18 +7,14 @@ include_once 'db_class/GuesthouseBooking.php';
 
 $action = $_POST['action'];
 
-if (strtolower($action) == 'booking_request') {
-    if (! checkMandatoryParameter(array('action','created_by_id','check_in','check_out','paid_via_id'))) {
+if (strtolower($action) == 'booking') {
+    if (! checkMandatoryParameter(array('action'))) {
         
-        $createdById = $_POST['created_by_id'];
-        $checkIn = $_POST['check_in'];
-        $checkOut = $_POST['check_out'];
-        $paidViaId = $_POST['paid_via_id'];
-        
+        $bookingJson = json_decode($_POST['booking_json']);
         
         $db = new GuesthouseBooking();
         $response = array();
-        $result = $db->bookingRequest($createdById, $checkIn, $checkOut, $paidViaId);
+        $result = $db->bookingRequest($bookingJson);
         if ($result == EXIST) {
             $response['id'] = 0;
             $response['error'] = TRUE;

@@ -384,16 +384,16 @@ class SendMail
         return $this->sendEmail($from, $to, $CC, $BCC, $message, $subject);
     }
 
-    function bookingRequestMail($tripId, $bookingId, $bookingType, $userId, $bookingMemberJson)
+    function bookingRequestMail($bookingId,$bookingJson)
     {
         include_once 'db_class/User.php';
         $userDb = new User();
 
-        $userName = $userDb->getNameByUserId($userId);
+        $userName = $userDb->getNameByUserId($bookingJson->created_by_id);
 
         $members = "";
         $memberEmail = "";
-        foreach ($bookingMemberJson as $value) {
+        foreach ($bookingJson->trip_booking_member as $value) {
 
             if (strlen($members) < 1) {
                 $members = $userDb->getNameByUserId($value->member_id);
@@ -404,17 +404,60 @@ class SendMail
             }
         }
 
+        include 'db_class/Project.php';
+        $projectDb = new Project();
+
+        $projectName = $projectDb->getProjectNameByTripId($bookingJson->trip_id);
+
         $from = 'no-reply@technitab.com';
         $to = 'acc.technitab@gmail.com'; // note the comma
         $CC = 'kavinder.technitab@gmail.com, hr.technitab@gmail.com';
         $CC .= ',' . $memberEmail;
         $BCC = 'neeraj.technitab@gmail.com';
         // Subject
-        $subject = 'Booking Request: ' . $tripId . ',' . $bookingType;
+        $subject = 'Booking Request: ' . $bookingJson->trip_id . ',' . $bookingJson->user_booking_mode;
 
         $message = 'Please process the following booking request by ' . $userName . ' and update in ESS for intimation <p></p>
                    Members ' . $members . '<br>' . $userName . ' shall attach the related invoice billpayment receipt on this booking accordingly in ESS';
 
+
+
+        if (strtolower($bookingJson->user_booking_mode) == strtolower('Hotel/PG/Lodge')) {
+            $dates = $this->converDateToDM($bookingJson->user_check_in) . ' - ' . $this->converDateToDM($bookingJson->user_check_out);
+            $location = $bookingJson->user_city_area;
+
+        } else {
+            $dates = $this->converDateToDM($bookingJson->user_travel_date);
+            $location = "From : ".$bookingJson->user_source." To: ".$bookingJson->user_destination;
+
+        }
+
+
+        $message = '<html>
+                      <head>
+                       <title>Payment Request of booking by ' . $userName . '</title>
+                      </head>
+                      <body>
+                       <p>Dear Admin</p>
+                       Please process the following booking request by ' . $userName . ' and update in ESS for intimation <p></p>
+                   Members ' . $members . '<br>' . $userName . ' shall attach the related invoice billpayment receipt on this booking accordingly in ESS
+                       
+                       <b>Trip id:</b> ' . $bookingJson->trip_id.'<br>
+                       <b>Booking id:</b> ' . $bookingId . '<br>
+                       <b>Project Name:</b> ' . $projectName . '<br>
+                       <b>Booking Mode:</b> ' . $bookingJson->user_booking_mode . '<br>
+                       <b>Booking Detail:</b><br>
+                       <b>Dates:</b> ' . $dates . '<br>
+                       <b>Location:</b> ' . $location . '<br>                     
+                       <b>Vendor:</b> ' . $bookingJson->user_vendor . '<br>                     
+                       <b>Preference: </b>'.$bookingJson->user_instruction.'<br>
+                       
+                       <p></p>
+                       Regards.<br>
+                       Ess App
+                       </body>
+                       </html>
+                       ';
         return $this->sendEmail($from, $to, $CC, $BCC, $message, $subject);
     }
     

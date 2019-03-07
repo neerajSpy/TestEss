@@ -346,7 +346,7 @@ class Project
     function updateRequestedProjectStatus($requestId, $modifiedById)
     {
         $this->con->query("UPDATE `request_assign_project` set `is_active` = '$this->deactive', `modified_by_id` = '$modifiedById',
-        `created_date` = '$this->date' where `id` = '$requestId' ");
+        `modified_date` = '$this->date' where `id` = '$requestId' ");
     }
 
     function isUpdateTempExist($projectId, $projectName, $projectTypeId)

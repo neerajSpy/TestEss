@@ -242,15 +242,10 @@ class TripBookings
         // echo "attachment".$tecEntryId." ".$tecId." ".$entryCateory;
         if (isset($_FILES[$file]["type"])) {
             if (($_FILES[$file]["type"] == "application/pdf") && ($_FILES[$file]["size"] < 2097152)) {
-                
-                $fileName = "";
-                $imagePath = "";
-                
+
                 $sourcePath = $_FILES[$file]['tmp_name'];
-                
                 $extension = $this->getFileExtension($_FILES[$file]["name"]);
                 $fileName = $userId. '_' . $bookingId ."_" .$this->getMiliSecond()."_". rand().  '.' . $extension;
-                
                 $targetPath = $_SERVER['DOCUMENT_ROOT'] .$this->bookingDirectoryPath . $fileName;
                 move_uploaded_file($sourcePath, $targetPath);
                 $imagePath = $this->bookingBasePath . $fileName;
@@ -265,10 +260,7 @@ class TripBookings
         // echo "attachment".$tecEntryId." ".$tecId." ".$entryCateory;
         if (isset($_FILES[$file]["type"])) {
             if (($_FILES[$file]["type"] == "application/pdf") && ($_FILES[$file]["size"] < 2097152)) {
-                
-                $fileName = "";
-                $imagePath = "";
-                
+
                 $sourcePath = $_FILES[$file]['tmp_name'];
                 
                 $extension = $this->getFileExtension($_FILES[$file]["name"]);
@@ -277,7 +269,6 @@ class TripBookings
                 $targetPath = $_SERVER['DOCUMENT_ROOT'] .$this->bookingDirectoryPath . $fileName;
                 move_uploaded_file($sourcePath, $targetPath);
                 $imagePath = $this->bookingBasePath . $fileName;
-                // echo "image ".$imagePath;
                 $result = $this->con->query("UPDATE `booking_payment` set `bill_attachment`= '$imagePath' where `id` = '$paymentId'");
                 if ($result === TRUE) {
                     return $this->con->affected_rows;
