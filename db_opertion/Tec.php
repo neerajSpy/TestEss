@@ -103,7 +103,6 @@ class Tec
             $arrivalDate = date('Y-m-d', strtotime($adminArrivalDateTime));
             $arrivalTime = date('H:i:s', strtotime($adminArrivalDateTime));
            
-            
 
             $data = $this->getUnitPriceQtyOfBooking($bookingId, $travelType);
 
@@ -717,7 +716,7 @@ class Tec
         return FALSE;
     }
 
-    function createTecEntryLog($tecEntryId, $userId, $status, $json)
+    function createTecEntryLog($tecEntryId, $userId, $status)
     {
         // SELECT `id`, `tec_entry_id`, `user_id`, `status`, `date` FROM `emp_tec_entry_log` WHERE 1
         $this->con->query("INSERT into `emp_tec_entry_log` (`tec_entry_id`,`user_id`,`status`,`date`) VALUES ('$tecEntryId','$userId','$status','$this->date')");

@@ -21,8 +21,6 @@ class GuesthouseBooking
         $this->con = $db->dbConnect();
         date_default_timezone_set('Asia/Kolkata');
         $this->date = date("Y-m-d H:i:s");
-        $this->bookingDirectoryPath = "/web_service/ess_test/trip_booking/";
-        $this->bookingBasePath = "http://ess.technitab.in" . $this->bookingDirectoryPath;
         $this->active = IS_ACTIVE;
         $this->deactive = DEACTIVE;
 
