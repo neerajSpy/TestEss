@@ -97,7 +97,7 @@ else if (strtolower($action) == 'manual_attendance') {
         $response = array();
         if ($result == EXIST) {
             $response['error'] = TRUE;
-            $response['message'] = "Attendance already filled on this date.";
+            $response['message'] = "You have exceed time limit of manual punch in.";
         } else if ($result == QUERY_PROBLEM) {
             $response['error'] = TRUE;
             $response['message'] = "Attendance has not saved";

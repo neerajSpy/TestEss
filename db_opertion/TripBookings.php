@@ -30,7 +30,7 @@ class TripBookings
         $this->con = $db->dbConnect();
         date_default_timezone_set('Asia/Kolkata');
         $this->date = date("Y-m-d H:i:s");
-        $this->bookingDirectoryPath = "/web_service/ess_test/trip_booking/";
+        $this->bookingDirectoryPath = "/web_service/ESS/trip_booking/";
         $this->bookingBasePath = "http://ess.technitab.in".$this->bookingDirectoryPath;
         $this->active = IS_ACTIVE;
         $this->deactive = DEACTIVE;
@@ -242,10 +242,15 @@ class TripBookings
         // echo "attachment".$tecEntryId." ".$tecId." ".$entryCateory;
         if (isset($_FILES[$file]["type"])) {
             if (($_FILES[$file]["type"] == "application/pdf") && ($_FILES[$file]["size"] < 2097152)) {
-
+                
+                $fileName = "";
+                $imagePath = "";
+                
                 $sourcePath = $_FILES[$file]['tmp_name'];
+                
                 $extension = $this->getFileExtension($_FILES[$file]["name"]);
                 $fileName = $userId. '_' . $bookingId ."_" .$this->getMiliSecond()."_". rand().  '.' . $extension;
+                
                 $targetPath = $_SERVER['DOCUMENT_ROOT'] .$this->bookingDirectoryPath . $fileName;
                 move_uploaded_file($sourcePath, $targetPath);
                 $imagePath = $this->bookingBasePath . $fileName;
@@ -260,7 +265,10 @@ class TripBookings
         // echo "attachment".$tecEntryId." ".$tecId." ".$entryCateory;
         if (isset($_FILES[$file]["type"])) {
             if (($_FILES[$file]["type"] == "application/pdf") && ($_FILES[$file]["size"] < 2097152)) {
-
+                
+                $fileName = "";
+                $imagePath = "";
+                
                 $sourcePath = $_FILES[$file]['tmp_name'];
                 
                 $extension = $this->getFileExtension($_FILES[$file]["name"]);

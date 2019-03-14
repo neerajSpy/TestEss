@@ -103,6 +103,7 @@ class Tec
             $arrivalDate = date('Y-m-d', strtotime($adminArrivalDateTime));
             $arrivalTime = date('H:i:s', strtotime($adminArrivalDateTime));
            
+            
 
             $data = $this->getUnitPriceQtyOfBooking($bookingId, $travelType);
 
@@ -563,7 +564,7 @@ class Tec
     function getTecAmount($tecId)
     {
         $amount = 0;
-        $result = $this->con->query("SELECT * from `emp_main_tec` WHERE `id` = '$tecId'");
+        $result = $this->con->query("SELECT `total_amount` from `emp_main_tec` WHERE `id` = '$tecId'");
         if ($result->num_rows > 0) {
             if ($row = $result->fetch_assoc()) {
                 $amount = $row['total_amount'];
@@ -575,7 +576,7 @@ class Tec
     function getPrevBillAmount($tecId, $entryId)
     {
         $amount = 0;
-        $result = $this->con->query("SELECT * from `emp_tec_entry` WHERE `id` = '$entryId' AND `tec_id` = '$tecId'");
+        $result = $this->con->query("SELECT `bill_amount` from `emp_tec_entry` WHERE `id` = '$entryId' AND `tec_id` = '$tecId'");
         if ($result->num_rows > 0) {
             if ($row = $result->fetch_assoc()) {
                 $amount = $row['bill_amount'];
@@ -586,8 +587,8 @@ class Tec
 
     function getPreviousTecPath($tecId, $entryId)
     {
-        $path = 0;
-        $result = $this->con->query("SELECT * from `emp_tec_entry` WHERE `id` = '$entryId' AND `tec_id` = '$tecId'");
+        $path = "";
+        $result = $this->con->query("SELECT `attachment_path` from `emp_tec_entry` WHERE `id` = '$entryId' AND `tec_id` = '$tecId'");
         if ($result->num_rows > 0) {
             if ($row = $result->fetch_assoc()) {
                 $path = $row['attachment_path'];
@@ -605,7 +606,7 @@ class Tec
     function updateTecAmount($tecId, $userId, $newAmount, $previousAmount)
     {
         $totalAmount = 0;
-        $result = $this->con->query("SELECT * from `emp_main_tec` WHERE `id` = '$tecId'");
+        $result = $this->con->query("SELECT `total_amount` from `emp_main_tec` WHERE `id` = '$tecId'");
         if ($result->num_rows > 0) {
             if ($row = $result->fetch_assoc()) {
                 $totalAmount = $row['total_amount'];
@@ -698,7 +699,7 @@ class Tec
 
     function getTecDataById($tecId){
         $dataArr = array();
-        $result = $this->con->query("SELECT emc.*, mzp.`Project Name` as project_name, mzp.`client_name`, u.`name` from `emp_main_tec` as emc join `master_zoho_project` as mzp on emc.`project_id` = mzp.`id` join `user` as u on emc.`created_by_id` = u.`id`  where emc.`id` = '$tecId'");
+        $result = $this->con->query("SELECT emc.*, mzp.`project_name`, mzp.`client_name`, u.`name` from `emp_main_tec` as emc join `master_zoho_project` as mzp on emc.`project_id` = mzp.`id` join `user` as u on emc.`created_by_id` = u.`id`  where emc.`id` = '$tecId'");
         if($result->num_rows >0){
             $row = $result->fetch_assoc();
             $dataArr = $row;
@@ -729,7 +730,7 @@ class Tec
 
     private function isTecExist($createdById, $projectId, $claimStartDate)
     {
-        $result = $this->con->query("SELECT * from `emp_main_tec` WHERE `created_by_id` = '$createdById' AND 
+        $result = $this->con->query("SELECT `id` from `emp_main_tec` WHERE `created_by_id` = '$createdById' AND 
         `project_id` = '$projectId' AND `claim_start_date` = '$claimStartDate'");
 
         return $result->num_rows > 0;

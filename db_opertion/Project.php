@@ -49,11 +49,11 @@ class Project
         
         if (! $this->isProjectExist($projectJson->project_name, $projectJson->project_type_id)) {
 
-            $result = $this->con->query("INSERT into `master_zoho_project` (`Project Name`,`address`,
-            `district`,`location`, `Description`,`client_name`,`Customer Name`, `cust_id`,
-            `Currency Code`,`project_type_id`,`CF.Estimated Days`,`planned_start_date`,
-            `planned_end_date`,`created_by`,`created_date`,`country`,`state`,`is_international`,
-            `Billing Type`,`Budget Type`,`Project Budget Hours`,`Budget Amount`,`tl_ts_approver_id`)
+            $result = $this->con->query("INSERT into `master_zoho_project` (`project_name`,`address`,
+            `district`,`location`, `description`,`client_name`,`customer_name`, `cust_id`,
+            `currency_code`,`project_type_id`,`estimated_days`,`planned_start_date`,
+            `planned_end_date`,`created_by_id`,`created_date`,`country`,`state`,`is_international`,
+            `billing_type`,`budget_type`,`project_budget_hours`,`budget_amount`,`tl_ts_approver_id`)
             VALUES ('$projectJson->project_name','$projectJson->address','$projectJson->district',
             '$projectJson->location','$projectJson->description','$projectJson->client_name','$projectJson->customer_name',
             '$projectJson->cust_id','$currencyCode','$projectJson->project_type_id',
@@ -96,11 +96,11 @@ class Project
 
         if (! $this->isProjectExist($projectJson->project_name, $projectJson->project_type_id)) {
 
-            $result = $this->con->query("INSERT into `master_zoho_project` (`Project Name`,`address`,
-            `district`,`location`, `Description`,`client_name`,`Customer Name`, `cust_id`,
-            `Currency Code`,`project_type_id`,`CF.Estimated Days`,`planned_start_date`,
-            `planned_end_date`,`created_by`,`created_date`,`modified_by`,`modified_date`,`country`,`state`,`is_international`,
-            `Billing Type`,`Budget Type`,`Project Budget Hours`,`Budget Amount`,`tl_ts_approver_id`)
+            $result = $this->con->query("INSERT into `master_zoho_project` (`project_name`,`address`,
+            `district`,`location`, `description`,`client_name`,`customer_name`, `cust_id`,
+            `currency_code`,`project_type_id`,`estimated_days`,`planned_start_date`,
+            `planned_end_date`,`created_by_id`,`created_date`,`modified_by_id`,`modified_date`,`country`,`state`,`is_international`,
+            `billing_type`,`budget_type`,`project_budget_hours`,`budget_amount`,`tl_ts_approver_id`)
             VALUES ('$projectJson->project_name','$projectJson->address','$projectJson->district',
             '$projectJson->location','$projectJson->description','$projectJson->client_name','$projectJson->customer_name',
             '$projectJson->cust_id','$currencyCode','$projectJson->project_type_id',
@@ -160,7 +160,7 @@ class Project
     function fetchRequestedProject()
     {
         $response = array();
-        $result = $this->con->query("SELECT rap.*, u.`name`, mzp.`Project Name`, mzp.`project_type_id` from `request_assign_project` as rap JOIN 
+        $result = $this->con->query("SELECT rap.*, u.`name`, mzp.`project_name`, mzp.`project_type_id` from `request_assign_project` as rap JOIN 
                   `user` u ON rap.`created_by_id` = u.`id` JOIN `master_zoho_project` as mzp on mzp.`id` = rap.`project_id` 
                   WHERE rap.`is_active` = '$this->isActive' ORDER BY rap.`created_date` DESC");
 
@@ -169,7 +169,7 @@ class Project
                 array_push($response, array(
                     "id" => $row['id'],
                     "project_id" => $row['project_id'],
-                    "project_name" => $row['Project Name'],
+                    "project_name" => $row['project_name'],
                     "project_type_id" => $row['project_type_id'],
                     "created_by_id" => $row['created_by_id'],
                     "created_by" => $row['name']
@@ -254,10 +254,10 @@ class Project
 
         if (! $this->isTempProjectExist($projectJson->project_name, $projectJson->project_type_id)) {
 
-            $result = $this->con->query("INSERT into `temp_project` (`Project Name`,`address`,
-            `district`,`location`, `Description`,`client_name`,`Customer Name`, `cust_id`,
-            `Currency Code`,`project_type_id`,`CF.Estimated Days`,`planned_start_date`,
-            `planned_end_date`,`created_by`,`created_date`,`country`,`state`,`is_international`)
+            $result = $this->con->query("INSERT into `temp_project` (`project_name`,`address`,
+            `district`,`location`, `description`,`client_name`,`customer_name`, `cust_id`,
+            `currency_code`,`project_type_id`,`estimated_days`,`planned_start_date`,
+            `planned_end_date`,`created_by_id`,`created_date`,`country`,`state`,`is_international`)
             VALUES ('$projectJson->project_name','$projectJson->address','$projectJson->district',
             '$projectJson->location','$projectJson->description','$projectJson->client_name','$projectJson->customer_name',
             '$projectJson->cust_id','$currencyCode','$projectJson->project_type_id',
@@ -288,14 +288,14 @@ class Project
 
         if (! $this->isUpdateTempExist($projectJson->id, $projectJson->project_name, $projectJson->project_type_id)) {
 
-            $result = $this->con->query("UPDATE `temp_project` set `Project Name` = '$projectJson->project_name',
+            $result = $this->con->query("UPDATE `temp_project` set `project_name` = '$projectJson->project_name',
             `address` = '$projectJson->address',`district` = '$projectJson->district',
             `location` = '$projectJson->location', `Description`= '$projectJson->description',
-            `client_name`= '$projectJson->client_name',`Customer Name` = '$projectJson->customer_name', 
-            `cust_id` = '$projectJson->cust_id',`Currency Code` = '$currencyCode',
-            `project_type_id` = '$projectJson->project_type_id',`CF.Estimated Days` = '$projectJson->estimated_days',
+            `client_name`= '$projectJson->client_name',`customer_name` = '$projectJson->customer_name', 
+            `cust_id` = '$projectJson->cust_id',`currency_code` = '$currencyCode',
+            `project_type_id` = '$projectJson->project_type_id',`estimated_days` = '$projectJson->estimated_days',
             `planned_start_date`= '$projectJson->planned_start_date',`planned_end_date` = '$projectJson->planned_end_date',
-            `modified_by`= '$projectJson->modified_by_id',`modified_date` = '$this->date',
+            `modified_by_id`= '$projectJson->modified_by_id',`modified_date` = '$this->date',
             `country` = '$projectJson->country',`state` = '$state',
             `is_international` = '$isInternational' where `id` = '$projectJson->id'");
 
@@ -312,20 +312,20 @@ class Project
     
     function getProjectNameById($id){
         $projectName = "";
-        $result = $this->con->query("SELECT `Project Name` from `master_zoho_project` where `id` = '$id'");
+        $result = $this->con->query("SELECT `project_name` from `master_zoho_project` where `id` = '$id'");
         if($result->num_rows >0){
             $row = $result->fetch_assoc();
-            $projectName = $row['Project Name'];
+            $projectName = $row['project_name'];
         }
         return $projectName;
     }
     
     function getProjectNameByTripId($id){
         $projectName = "";
-        $result = $this->con->query("SELECT mzp.`Project Name` from `expense_trip` as et JOIN `master_zoho_project` as mzp on et.`project_id` = mzp.`id` where et.`id` = '$id'");
+        $result = $this->con->query("SELECT mzp.`project_name` from `expense_trip` as et JOIN `master_zoho_project` as mzp on et.`project_id` = mzp.`id` where et.`id` = '$id'");
         if($result->num_rows >0){
             $row = $result->fetch_assoc();
-            $projectName = $row['Project Name'];
+            $projectName = $row['project_name'];
         }
         return $projectName;
     }
@@ -351,21 +351,21 @@ class Project
 
     function isUpdateTempExist($projectId, $projectName, $projectTypeId)
     {
-        $result = $this->con->query("SELECT * From `temp_project` WHERE `id` != '$projectId' AND LOWER(`Project Name`) = LOWER('$projectName') AND `project_type_id` = '$projectTypeId' AND `is_active` = '$this->isActive'");
+        $result = $this->con->query("SELECT `id` From `temp_project` WHERE `id` != '$projectId' AND LOWER(`project_name`) = LOWER('$projectName') AND `project_type_id` = '$projectTypeId' AND `is_active` = '$this->isActive'");
         // echo "temp project ".$result->num_rows." temp project error ".$this->con->error;
         return $result->num_rows > 0;
     }
 
     function isTempProjectExist($projectName, $projectTypeId)
     {
-        $result = $this->con->query("SELECT * From `temp_project` WHERE LOWER(`Project Name`) = LOWER('$projectName') AND `project_type_id` = '$projectTypeId' AND `is_active` = '$this->isActive'");
+        $result = $this->con->query("SELECT `id` From `temp_project` WHERE LOWER(`project_name`) = LOWER('$projectName') AND `project_type_id` = '$projectTypeId' AND `is_active` = '$this->isActive'");
         // echo "temp project ".$result->num_rows." temp project error ".$this->con->error;
         return $result->num_rows > 0;
     }
 
     function isProjectExist($projectName, $projectTypeId)
     {
-        $result = $this->con->query("SELECT * From `master_zoho_project` WHERE LOWER(`Project Name`) = LOWER('$projectName') AND `project_type_id` = '$projectTypeId' AND `is_active` = '$this->isActive'");
+        $result = $this->con->query("SELECT `id` From `master_zoho_project` WHERE LOWER(`project_name`) = LOWER('$projectName') AND `project_type_id` = '$projectTypeId' AND `is_active` = '$this->isActive'");
         // echo "project ".$result->num_rows." project error ".$this->con->error;
         return $result->num_rows > 0;
     }
@@ -373,7 +373,7 @@ class Project
     function getProjectId($projectName, $projectTypeId)
     {
         $projectId = 0;
-        $result = $this->con->query("SELECT * From `master_zoho_project` WHERE `Project Name` ='$projectName' AND `project_type_id` = '$projectTypeId' AND `is_active` = '$this->isActive'");
+        $result = $this->con->query("SELECT `id` From `master_zoho_project` WHERE `project_name` ='$projectName' AND `project_type_id` = '$projectTypeId' AND `is_active` = '$this->isActive'");
         if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
             $projectId = $row['id'];
@@ -395,10 +395,10 @@ class Project
     private function getProjectTypeId($projectId)
     {
         $projectTypeId = 0;
-        $result = $this->con->query("SELECT * From `master_zoho_project` WHERE `id` ='$projectId'");
+        $result = $this->con->query("SELECT `project_type_id` From `master_zoho_project` WHERE `id` ='$projectId'");
         if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
-            $projectTypeId = $row['projectTypeId'];
+            $projectTypeId = $row['project_type_id'];
         }
         return $projectTypeId;
     }

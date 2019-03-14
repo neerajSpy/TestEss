@@ -23,7 +23,7 @@ class SendMail
         $from = 'no-reply@technitab.com';
         $CC = 'hr.technitab@gmail.com'; // note the comma
         $to =  $userEmail;
-        $BCC = 'neeraj.technitab@gmail.com';
+        $BCC = '';
         // Subject
         $subject = 'Attendance: ' . date("d M, y", strtotime($attendanceDataArray['date']));
         
@@ -61,7 +61,7 @@ class SendMail
         $from = 'no-reply@technitab.com';
         $to = 'hr.technitab@gmail.com'; // note the comma
         $CC =  $userEmail;
-        $BCC = 'neeraj.technitab@gmail.com';
+        $BCC = '';
         // Subject
         $subject = 'Leave request: ' . $userName;
 
@@ -109,7 +109,7 @@ class SendMail
         $to = $userEmail; // note the comma
         $CC = 'hr.technitab@gmail.com';
         $CC .= ',' . $assignUserEmail;
-        $BCC = 'neeraj.technitab@gmail.com';
+        $BCC = '';
         // Subject
         $subject = 'Leave assigned: ' . $userName;
 
@@ -156,7 +156,7 @@ class SendMail
         $to = $userEmail; // note the comma
         $CC = 'hr.technitab@gmail.com';
         $CC .= ', ' . $approveEmail;
-        $BCC = 'neeraj.technitab@gmail.com';
+        $BCC = '';
 
         $subject = 'Response to leave request: ' . $approveUserName;
 
@@ -208,7 +208,7 @@ class SendMail
         $from = 'no-reply@technitab.com';
         $to = 'hr.technitab@gmail.com'; // note the comma
         $CC = $userEmail;
-        $BCC = 'neeraj.technitab@gmail.com';
+        $BCC = '';
         // Subject
         $subject = 'Project Approval request: ' . $projectDataArray->project_name;
 
@@ -257,7 +257,7 @@ class SendMail
         $to = $sendTo; // note the comma
         $CC = 'hr.technitab@gmail.com';
         $CC .= ',' . $approveUserEmail;
-        $BCC = 'neeraj.technitab@gmail.com';
+        $BCC = '';
         // Subject
         $subject = 'Project Approved: ' . $projectDataArray->project_name . ' - ' . $projectId;
 
@@ -302,7 +302,7 @@ class SendMail
         $from = 'no-reply@technitab.com';
         $to = 'hr.technitab@gmail.com'; // note the comma
         $CC =  $sendTo;
-        $BCC = 'neeraj.technitab@gmail.com';
+        $BCC = '';
         // Subject
         $subject = 'Add Vendor Request: ' . $displayName;
 
@@ -353,7 +353,7 @@ class SendMail
         $to = $sendTo; // note the comma
         $CC = 'hr.technitab@gmail.com';
         $CC .= ',' . $approveById;
-        $BCC = 'neeraj.technitab@gmail.com';
+        $BCC = '';
         // Subject
         $subject = 'Vendor approved: ' . $displayName;
 
@@ -413,7 +413,7 @@ class SendMail
         $to = 'acc.technitab@gmail.com'; // note the comma
         $CC = 'kavinder.technitab@gmail.com, hr.technitab@gmail.com';
         $CC .= ',' . $memberEmail;
-        $BCC = 'neeraj.technitab@gmail.com';
+        $BCC = '';
         // Subject
         $subject = 'Booking Request: ' . $bookingJson->trip_id . ',' . $bookingJson->user_booking_mode;
 
@@ -492,9 +492,9 @@ class SendMail
         $to = 'acc.technitab@gmail.com'; // note the comma
         $CC = 'hr.technitab@gmail.com';
         $CC .= ',' . $userEmail;
-        $BCC = 'neeraj.technitab@gmail.com';
+        $BCC = '';
         // Subject
-        $subject = 'Booking Payment Request: by '.$userName. ' for '.$vendorArr['Contact Name'];
+        $subject = 'Booking Payment Request: by '.$userName. ' for '.$vendorArr['contact_name'];
 
         // Message
         $message = '<html>
@@ -515,12 +515,12 @@ class SendMail
                        <b>Location:</b> ' . $location . '<br>
                        <b> Reference:</b> '.$reference.'<br>                       
                        <b>Vendor Detail</b><br>
-                       <b>Vendor name & id:</b> ' . $vendorArr['Contact Name'] . '<br>
-                       <b>Vendor payment mode:</b> ' . $vendorArr['CF.Payment Mode'] . '<br>
-                       <b>Bank A/c holder name:</b> ' . $vendorArr['CF.Bank a/c holders name']. '<br>
-                       <b>Account No.:</b>'.$vendorArr['CF.Bank Account number'].'<br>
-                       <b>IFSC code:</b>'.$vendorArr['CF.IFSC Code'].'<br>
-                       <b>Address:</b>'.$vendorArr['CF.Banks Address'].'<br>
+                       <b>Vendor name & id:</b> ' . $vendorArr['contact_name'] . '<br>
+                       <b>Vendor payment mode:</b> ' . $vendorArr['payment_mode'] . '<br>
+                       <b>Bank A/c holder name:</b> ' . $vendorArr['bank_holder_name']. '<br>
+                       <b>Account No.:</b>'.$vendorArr['account_number'].'<br>
+                       <b>IFSC code:</b>'.$vendorArr['ifsc'].'<br>
+                       <b>Address:</b>'.$vendorArr['bank_address'].'<br>
                        
                        <p></p>
                        Regards.<br>
@@ -558,9 +558,9 @@ class SendMail
         $to = $userEmail; // note the comma
         $CC = 'hr.technitab@gmail.com,acc.technitab@gmail.com';
         $CC .= ',' . $approverEmail;
-        $BCC = 'neeraj.technitab@gmail.com';
+        $BCC = '';
         // Subject
-        $subject = 'Payment Made: '.$vendorArr['Contact Name'].' Booking id '.$bookingArr['id'];
+        $subject = 'Payment Made: '.$vendorArr['contact_name'].' Booking id '.$bookingArr['id'];
         
         // Message
         $message = '<html>
@@ -569,10 +569,10 @@ class SendMail
                        Following payment request by ' . $approverName .' is processed and updated in ESS as per details below.<br> 
                        '.$userName. ' shall attach the related invoice / bill / payment receipt on this booking accordingly in ESS.<p></p>
                            
-                       <b>Vendor & vendor code:</b> ' . $vendorArr['Contact Name'].'<br>
+                       <b>Vendor & vendor code:</b> ' . $vendorArr['contact_name'].'<br>
                        Vendor type: ' . $vendorArr['CF.Vendor type'] . '<br>
-                       Vendor location: ' . $vendorArr['CF.Vendor District'] .', '.$vendorArr['Billing Country'].', '.$vendorArr['Billing State']. '<br>
-                       Vendor phone: ' . $vendorArr['MobilePhone'] . '<br>
+                       Vendor location: ' . $vendorArr['district'] .', '.$vendorArr['billing_country'].', '.$vendorArr['billing_state']. '<br>
+                       Vendor phone: ' . $vendorArr['mobile_phone'] . '<br>
                        <b>Booking id:</b> ' . $bookingArr['id'] . '<br>
                        Dates: ' . $dates . '<br>
                        Nights: ' . $bookingArr['quantity'] . '<br>
@@ -625,7 +625,7 @@ class SendMail
         }
         
         $from = 'no-reply@technitab.com';
-        $BCC = 'neeraj.technitab@gmail.com';
+        $BCC = '';
         // Subject
         $subject = 'TEC status change: '.$tecDataArr['status']. ' - '.$tecDataArr['id'];
         

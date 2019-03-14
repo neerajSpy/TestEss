@@ -69,39 +69,23 @@ class Leave
     }
 
    
-    function approveLeave($leaveRequestId, $approvedById,$remark = null)
+    function approveLeave($leaveRequestId, $approvedById)
     {
-        $leaveDataArray = $this->getLeaveData($leaveRequestId);
-        $leaveType = $this->getLeveType($leaveDataArray['leave_type_id']);
-        if ($this->isSufficientLeave($leaveDataArray['user_id'],$leaveType,$leaveDataArray['start_date'],$leaveDataArray['end_date'],$leaveDataArray['duration'])) {
-            $result = $this->updateLeaveRequestStatus($leaveRequestId, $approvedById, $this->leaveStatusIdArray['approved'],$remark);
-            if ($result === TRUE) {
-                $entitledResult = $this->updateEntitlement($leaveRequestId, $approvedById);
-                if ($entitledResult === TRUE) {
-                    $this->insertLeaveEntitlementLog($leaveRequestId, $approvedById);
-                }
-                return 1;
+        $result = $this->updateLeaveRequestStatus($leaveRequestId, $approvedById, $this->leaveStatusIdArray['approve']);
+        if ($result === TRUE) {
+            $entitledResult = $this->updateEntitlement($leaveRequestId, $approvedById);
+            if ($entitledResult === TRUE) {
+                $this->insertLeaveEntitlementLog($leaveRequestId, $approvedById);
             }
-            return QUERY_PROBLEM;
         }
-        return INSUFFICIENT_LEAVE;
     }
-
-
-    function cancelLeaveRequest($leaveRequestId,$userId){
-        return $this->updateLeaveRequestStatus($leaveRequestId,$userId,$this->leaveStatusIdArray['cancelled'],null);
-    }
-
-    function rejectLeaveRequest($leaveRequestId,$userId,$remark){
-        return $this->updateLeaveRequestStatus($leaveRequestId, $userId, $this->leaveStatusIdArray['rejected'],$remark);
-    }
-
+    
     function leaveRequest($leaveJson){
         return $this->proceedLeave($leaveJson,$this->leaveStatusIdArray['pending']);
     }
     
     function assignLeave($leaveJson){
-        $result = $this->proceedLeave($leaveJson,$this->leaveStatusIdArray['approved']);
+        $result = $this->proceedLeave($leaveJson,$this->leaveStatusIdArray['approve']);
         if ($result >0) {
             $this->approveLeave($result, $leaveJson->created_by_id);
         }
@@ -155,7 +139,6 @@ class Leave
         return $this->con->affected_rows > 0;
     }
 
-
     function insertLeaveEntitlementLog($leaveRequestId, $modifiedById)
     {
         $this->con->query("INSERT into `leave_entitlement_history` (`leave_request_id`,`leave_entitlement_id`,
@@ -179,16 +162,9 @@ class Leave
         }
     }
 
-    function updateLeaveRequestStatus($leaveRequestId, $approvedById, $statusId,$remark = null)
+    function updateLeaveRequestStatus($leaveRequestId, $approvedById, $statusId)
     {
-        if ($remark == null){
-            $sqlQuery = "UPDATE `user_leave_request` set `leave_status_id` = '$statusId', `status_by_id` = '$approvedById', `status_date` = 
-            '$this->date' where `id` = '$leaveRequestId'";
-        }else{
-            $sqlQuery = "UPDATE `user_leave_request` set `leave_status_id` = '$statusId',`status_description` = '$remark', `status_by_id` = '$approvedById', `status_date` = 
-            '$this->date' where `id` = '$leaveRequestId'";
-        }
-        $this->con->query($sqlQuery);
+        $this->con->query("UPDATE `user_leave_request` set `leave_status_id` = '$statusId', `status_by_id` = '$approvedById', `status_date` = '$this->date' where `id` = '$leaveRequestId' ");
         return $this->con->affected_rows > 0;
     }
 
@@ -315,17 +291,9 @@ class Leave
         return $leaveBalance;
     }
 
-    function getLeaveData($leaveRequestId){
-        $response = array();
-        $result = $this->con->query("SELECT * from `user_leave_request` WHERE `id` = '$leaveRequestId'");
-        if ($result->num_rows > 0){
-            $response = $result->fetch_assoc();
-        }
-        return $response;
-    }
-
     function countUserLeaveAquireDays($startDate, $endDate, $durationValue)
     {
+        $count = 0;
         $totalWeekDays = $this->getTotalWeekDays($startDate, $endDate);
 
         if (strtolower(trim($durationValue)) == strtolower($this->durationValueArray['none'])) {
@@ -350,16 +318,6 @@ class Leave
             $leaveTypeId = $row['id'];
         }
         return $leaveTypeId;
-    }
-
-    function getLeveType($leaveTypeId){
-        $leaveType = "";
-        $result = $this->con->query("SELECT `name` from `leave_type` WHERE `id`= '$leaveTypeId'");
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            $leaveType = $row['name'];
-        }
-        return $leaveType;
     }
 
     function getLeaveShiftDataByName($shiftName)

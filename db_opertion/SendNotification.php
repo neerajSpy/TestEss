@@ -44,6 +44,11 @@ class SendNotification
                 $token = $row['token'];
                 $this->notification($token, $title, $arr);
             }
+            
+            // echo "token ".$token;
+
+            // $data += [ "two" => 2, "three" => 3 ];
+            
         }
     }
     
@@ -161,9 +166,14 @@ class SendNotification
     private function deleteNotificationToken($token,$responseResult){
         $resultJson = json_decode($responseResult);
         $resultArray = $resultJson->results;
+       // print_r($resultArray);
+       // echo "\n";
         foreach ($resultArray as $arr){
+            
             if(isset($arr->error) && $arr->error == 'NotRegistered'){
+                //echo "error value".$arr->error."\n";
                 $this->con->query("DELETE from `user_fcm_token` where `token` = '$token'");
+               // echo $this->con->affected_rows." error ".$this->con->error."\n";
             }
         }
     }

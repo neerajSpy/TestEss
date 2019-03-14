@@ -1,17 +1,22 @@
 <?php
 
 // namespace db_opertion;
-/* error_reporting(E_ALL);
+ /*error_reporting(E_ALL);
 ini_set('display_errors', 1); */
 
 class Vendor
 {
 
     private $con;
+
     private $date;
+
     private $basePath;
+
     private $isActive;
+
     private $deactive;
+
     private $mainVendorTable, $tempVendorTable;
 
     public function __construct()
@@ -32,7 +37,7 @@ class Vendor
 
     function addMainVendor($bankFile, $idProofFile, $billFile, $vendorJson)
     {
-        if (!$this->isVendorExist($vendorJson->company_name, $vendorJson->first_name, $vendorJson->last_name, $vendorJson->vendor_type)) {
+        if (! $this->isVendorExist($vendorJson->company_name,$vendorJson->first_name,$vendorJson->last_name, $vendorJson->vendor_type)) {
             return $this->addVendor($this->mainVendorTable, $bankFile, $idProofFile, $billFile, $vendorJson);
         } else {
             return EXIST;
@@ -41,44 +46,43 @@ class Vendor
 
     function addTempVendor($bankFile, $idProofFile, $billFile, $vendorJson)
     {
-        if (!$this->isTempVendorExist($vendorJson->company_name, $vendorJson->first_name, $vendorJson->last_name, $vendorJson->vendor_type)) {
+        if (! $this->isTempVendorExist($vendorJson->company_name,$vendorJson->first_name,$vendorJson->last_name, $vendorJson->vendor_type)) {
             $vendorId = $this->addVendor($this->tempVendorTable, $bankFile, $idProofFile, $billFile, $vendorJson);
-
-            if ($vendorId != QUERY_PROBLEM) {
-                $this->sendVendorMail($vendorId, $vendorJson);
+            
+            if($vendorId != QUERY_PROBLEM){
+                $this->sendVendorMail($vendorId,$vendorJson);
             }
-
-            return $vendorId;
+            
+            return $vendorId; 
         } else {
             return EXIST;
         }
     }
 
-
-    function sendVendorMail($vendorId, $vendorJson)
-    {
+    
+    function sendVendorMail($vendorId,$vendorJson){
         include 'db_class/SendMail.php';
-
+        
         $mailObj = new SendMail();
-
+        
         $contactName = "";
         if (strlen(trim($vendorJson->company_name)) < 1) {
             $contactName = $vendorJson->first_name . " " . $vendorJson->last_name;
         } else {
             $contactName = $vendorJson->company_name;
         }
-
+        
         $contactName = $this->getFormettedContactName($contactName, $vendorId);
-
+        
         if ($vendorJson->modified_by_id == '0') {
             $mailObj->submitVendorMail($vendorJson, $contactName);
-
-        } else {
+          
+        }else{
             $mailObj->approveVendorMail($vendorJson, $contactName);
         }
-
+        
     }
-
+    
     function addVendor($table, $bankFile, $idProofFile, $billFile, $vendorJson)
     {
         $firstName = $vendorJson->first_name;
@@ -152,24 +156,12 @@ class Vendor
         }
 
         $placeOfSupply = $this->getZohoStateCode($billingState);
-
-        $result = $this->con->query("INSERT INTO $table (`created_date`,`Source of Supply`,`CF.Vendor type`,
-                    `Company Name`, `Display Name`,`First Name`, `Last Name`, `EmailID`, `MobilePhone`,`GST Treatment`,
-                    `GST Identification Number (GSTIN)`, `PAN Number`, `Payment Terms`,`Billing Address`,
-                    `CF.Vendor District`,`Billing City`, `Billing State`, `Billing Country`, `Billing Code`,
-                    `Billing Phone`,`Shipping Address`,`Shipping City`, `Shipping State`, `Shipping Country`,
-                    `Shipping Code`,`Shipping Phone`,`CF.Voter ID`,`CF.Rate`,`Status`,`CF.PAN No`,
-                    `CF.Service Tax No`, `CF.TAN No`,`CF.ADHAAR No`,`CF.Name of Vendors Bank`, `CF.Banks Address`,
-                    `CF.Bank a/c holders name` ,`CF.Bank Account number`,`CF.IFSC Code`, `CF.bank_file_path`,
-                    `CF.id_proof_file_path`,`CF.Payment Mode`,`CF.bill_number`,`CF.bill_file_path`,`created_by_id`)
-                    VALUES ('$this->date','$placeOfSupply','$vendorType','$companyName','$companyName',
-                    '$firstName','$lastName','$email','$contact','$gstTreatment','$gstNum','$panNumber',
-                    '$paymentTerm','$billingAddress','$district','$billingCity','$billingState','$billingCountry',
-                    '$billingZipcode','$billingPhone','$shippingAddress','$shippingCity','$shippingState',
-                    '$shippingCountry','$shippingZipcode','$shippingPhone','$voterId','$rate','Active',
-                    '$panNumber','$serviceTaxNumber','$taxNumber','$adhaarNumber','$bankName', '$bankAddress',
-                    '$bankHolderName', '$accountNumber', '$ifsc','$bankPath', '$idProofPath','$paymentMode',
-                    '$billNumber','$billFilePath','$createdById')");
+        
+        $result = $this->con->query("INSERT INTO $table (`created_date`, `source_of_supply`, `vendor_type`, `company_name`, `display_name`, `first_name`, `last_name`, `email`, `mobile_phone`,`gst_treatment`,
+                    `gst_num`, `pan_number`, `payment_term`, `billing_address`, `district`, `billing_city`, `billing_state`, `billing_country`, 
+                    `billing_zipcode`, `billing_phone`, `shipping_address`, `shipping_city`, `shipping_state`, `shipping_country`, `shipping_zipcode`,`shipping_phone`, `voter_id`, `rate`, `status`, `service_tax_number`, `tax_number`, `adhaar_number`, `bank_name`, `bank_address`,`bank_holder_name` ,`account_number`,`ifsc`, `bank_file`, `id_proof_file`,`payment_mode`,`bill_number`,`bill_file`,`created_by_id`)
+                    VALUES ('$this->date', '$placeOfSupply', '$vendorType', '$companyName', '$companyName', '$firstName', '$lastName', '$email','$contact', '$gstTreatment', '$gstNum', '$panNumber', '$paymentTerm', '$billingAddress', '$district', '$billingCity', '$billingState','$billingCountry','$billingZipcode','$billingPhone','$shippingAddress','$shippingCity','$shippingState',
+                    '$shippingCountry','$shippingZipcode','$shippingPhone','$voterId','$rate','Active','$serviceTaxNumber','$taxNumber','$adhaarNumber','$bankName', '$bankAddress','$bankHolderName', '$accountNumber', '$ifsc','$bankPath', '$idProofPath','$paymentMode','$billNumber','$billFilePath','$createdById')");
 
         if ($result === TRUE) {
             $vendorId = $this->con->insert_id;
@@ -183,11 +175,11 @@ class Vendor
             if ($billFilePath != "") {
                 $this->moveFile($_FILES[$billFile]['tmp_name'], $billFileName);
             }
-
+            
             $contactName = "";
             if (strlen(trim($companyName)) < 1) {
-                $contactName = $firstName . " " . $lastName;
-            } else {
+                $contactName = $firstName." ".$lastName;
+            }else{
                 $contactName = $companyName;
             }
             $this->updateContactDisplayName($table, $contactName, $vendorId);
@@ -252,36 +244,36 @@ class Vendor
             $gstTreatment = "business_none";
         }
 
-        if (!$this->isVendorExist($companyName, $firstName, $lastName, $vendorType)) {
+        if (! $this->isVendorExist($companyName,$firstName,$lastName, $vendorType)) {
 
-            $result = $this->con->query("INSERT INTO `master_zoho_vendor` (`created_date`,`modified_date`,`Source of Supply`,`CF.Vendor type`,
-                    `Company Name`, `Display Name`,`First Name`, `Last Name`, `EmailID`, `MobilePhone`,`GST Treatment`,
-                    `GST Identification Number (GSTIN)`, `PAN Number`, `Payment Terms`,`Billing Address`,
-                    `CF.Vendor District`,`Billing City`, `Billing State`, `Billing Country`, `Billing Code`,
-                    `Billing Phone`,`Shipping Address`,`Shipping City`, `Shipping State`, `Shipping Country`,
-                    `Shipping Code`,`Shipping Phone`,`CF.Voter ID`,`CF.Rate`,`Status`,`CF.PAN No`,
-                    `CF.Service Tax No`, `CF.TAN No`,`CF.ADHAAR No`,`CF.Name of Vendors Bank`, `CF.Banks Address`,
-                    `CF.Bank a/c holders name` ,`CF.Bank Account number`,`CF.IFSC Code`, `CF.bank_file_path`,
-                    `CF.id_proof_file_path`,`CF.Payment Mode`,`CF.bill_number`,`CF.bill_file_path`,`created_by_id`,`modified_by_id`)
+            $result = $this->con->query("INSERT INTO `master_zoho_vendor` (`created_date`,`modified_date`,`source_of_supply`,`vendor_type`,
+                    `company_name`, `display_name`,`first_name`, `last_name`, `email`, `mobile_phone`,`gst_treatment`,
+                    `gst_num`, `pan_number`, `payment_term`,`billing_address`,
+                    `district`,`billing_city`, `billing_state`, `billing_country`, `billing_zipcode`,
+                    `billing_phone`,`shipping_address`,`shipping_city`, `shipping_state`, `shipping_country`,
+                    `shipping_zipcode`,`shipping_phone`,`voter_id`,`rate`,`Status`,
+                    `service_tax_number`, `tax_number`,`adhaar_number`,`bank_name`, `bank_address`,
+                    `bank_holder_name` ,`account_number`,`ifsc`, `bank_file`,
+                    `id_proof_file`,`payment_mode`,`bill_number`,`bill_file`,`created_by_id`,`modified_by_id`)
                     VALUES ('$this->date','$this->date','$placeOfSupply','$vendorType','$companyName','$companyName',
                     '$firstName','$lastName','$email','$contact','$gstTreatment','$gstNum','$panNumber',
                     '$paymentTerm','$billingAddress','$district','$billingCity','$billingState','$billingCountry',
                     '$billingZipcode','$billingPhone','$shippingAddress','$shippingCity','$shippingState',
                     '$shippingCountry','$shippingZipcode','$shippingPhone','$voterId','$rate','Active',
-                    '$panNumber','$serviceTaxNumber','$taxNumber','$adhaarNumber','$bankName', '$bankAddress',
+                    '$serviceTaxNumber','$taxNumber','$adhaarNumber','$bankName', '$bankAddress',
                     '$bankHolderName', '$accountNumber', '$ifsc','$bankPath', '$idProofPath','$paymentMode',
                     '$billNumber','$billFilePath','$createdById','$modifiedById')");
 
             if ($result === TRUE) {
                 $vendorId = $this->con->insert_id;
-
+                
                 $contactName = "";
                 if (strlen(trim($companyName)) < 1) {
-                    $contactName = $firstName . " " . $lastName;
-                } else {
+                    $contactName = $firstName." ".$lastName;
+                }else{
                     $contactName = $companyName;
                 }
-
+                
                 $this->updateTempVendorStatus($id, $modifiedById, $this->deactive);
                 $this->updateContactDisplayName($this->mainVendorTable, $contactName, $vendorId);
                 $this->sendVendorMail($vendorId, $vendorJson);
@@ -294,7 +286,7 @@ class Vendor
         }
     }
 
-
+   
     function updateTempVendor($bankFile, $idProofFile, $billFile, $vendorJson)
     {
         $id = $vendorJson->id;
@@ -353,7 +345,7 @@ class Vendor
         } else {
             $contactName = $companyName;
         }
-
+        
         $contactName = $this->getFormettedContactName($contactName, $id);
 
         $idProofPath = "";
@@ -384,20 +376,20 @@ class Vendor
             $billFilePath = $vendorJson->bill_file;
         }
 
-        $result = $this->con->query("UPDATE `temp_vendor` SET `Source of Supply` ='$placeOfSupply',
-       `CF.Vendor type`='$vendorType', `Contact Name` = '$contactName', `Company Name`='$companyName', `Display Name` = '$contactName',
-       `First Name` = '$firstName', `Last Name` = '$lastName', `EmailID` = '$email', `MobilePhone`= '$contact',
-       `GST Treatment` = '$gstTreatment', `GST Identification Number (GSTIN)`= '$gstNum', `PAN Number`='$panNumber',
-       `Payment Terms`='$paymentTerm',`Billing Address` = '$billingAddress',`CF.Vendor District`='$district',
-       `Billing City` = '$billingCity', `Billing State` = '$billingState', `Billing Country`='$billingCountry', 
-       `Billing Code`='$billingZipcode',`Billing Phone`='$billingPhone',`Shipping Address`='$shippingAddress',
-       `Shipping City`='$shippingCity', `Shipping State`='$shippingState', `Shipping Country`='$shippingCountry',
-       `Shipping Code`='$shippingZipcode',`Shipping Phone`='$shippingPhone',`CF.Voter ID`='$voterId',`CF.Rate`='$rate',
-       `Status`='Active',`CF.PAN No`='$panNumber', `CF.Service Tax No` = '$serviceTaxNumber', `CF.TAN No`='$taxNumber',
-       `CF.ADHAAR No`='$adhaarNumber',`CF.Name of Vendors Bank`='$bankName', `CF.Banks Address`='$bankAddress',
-       `CF.Bank a/c holders name`='$bankHolderName' ,`CF.Bank Account number`='$accountNumber',`CF.IFSC Code`='$ifsc', 
-       `CF.bank_file_path`='$bankPath', `CF.id_proof_file_path`='$idProofPath',`CF.Payment Mode`='$paymentMode',
-       `CF.bill_number` = '$billNumber',`CF.bill_file_path`='$billFilePath',`modified_by_id` = '$modifiedById',
+        $result = $this->con->query("UPDATE `temp_vendor` SET `source_of_supply` ='$placeOfSupply',
+       `vendor_type`='$vendorType', `contact_name` = '$contactName', `company_name`='$companyName', `display_name` = '$contactName',
+       `first_name` = '$firstName', `last_name` = '$lastName', `email` = '$email', `mobile_phone`= '$contact',
+       `gst_treatment` = '$gstTreatment', `gst_num`= '$gstNum', `pan_number`='$panNumber',
+       `payment_term`='$paymentTerm',`billing_address` = '$billingAddress',`district`='$district',
+       `billing_city` = '$billingCity', `billing_state` = '$billingState', `billing_country`='$billingCountry', 
+       `billing_zipcode`='$billingZipcode',`billing_phone`='$billingPhone',`shipping_address`='$shippingAddress',
+       `shipping_city`='$shippingCity', `shipping_state`='$shippingState', `shipping_country`='$shippingCountry',
+       `shipping_zipcode`='$shippingZipcode',`shipping_phone`='$shippingPhone',`voter_id`='$voterId',`rate`='$rate',
+       `Status`='Active', `service_tax_number` = '$serviceTaxNumber', `tax_number`='$taxNumber',
+       `adhaar_number`='$adhaarNumber',`bank_name`='$bankName', `bank_address`='$bankAddress',
+       `bank_holder_name`='$bankHolderName' ,`account_number`='$accountNumber',`ifsc`='$ifsc', 
+       `bank_file`='$bankPath', `id_proof_file`='$idProofPath',`payment_mode`='$paymentMode',
+       `bill_number` = '$billNumber',`bill_file`='$billFilePath',`modified_by_id` = '$modifiedById',
        `modified_date` = '$this->date' WHERE `id` = '$id'");
 
         if ($result === TRUE) {
@@ -410,8 +402,8 @@ class Vendor
     function updateContactDisplayName($tableName, $contactName, $vendorId)
     {
         $contactName = $this->getFormettedContactName($contactName, $vendorId);
-
-        $this->con->query("UPDATE $tableName set `Contact Name` = '$contactName' , `Display Name` = '$contactName'
+        
+        $this->con->query("UPDATE $tableName set `contact_name` = '$contactName' , `display_name` = '$contactName'
         where `id` = '$vendorId'");
     }
 
@@ -428,55 +420,53 @@ class Vendor
         }
     }
 
-    function getVendorDetailByBookingId($id)
-    {
+    function getVendorDetailByBookingId($id){
         $vendorData = array();
         $result = $this->con->query("SELECT mzv.* from `emp_booking` as eb JOIN `master_zoho_vendor` as mzv on eb.`admin_vendor_id` = mzv.`id` where eb.`id` = '$id'");
-
-        if ($result->num_rows > 0) {
-            $vendorData = $result->fetch_assoc();
-
+        
+        if($result->num_rows >0){
+            $vendorData =  $result->fetch_assoc();
+            
         }
         return $vendorData;
     }
-
-    function isTempVendorExist($companyName, $firstName, $lastName, $vendorType)
+    
+    function isTempVendorExist($companyName,$firstName,$lastName, $vendorType)
     {
         $dispayName = $companyName;
-        if (strlen(trim($companyName)) < 1) {
-            $dispayName = $firstName . " " . $lastName;
+        if (strlen(trim($companyName)) <1) {
+            $dispayName = $firstName." ".$lastName;
         }
-        $result = $this->con->query("SELECT * from `temp_vendor` where `Display Name` like '$dispayName' 
-        AND `CF.Vendor type` = '$vendorType' AND `is_active` = '$this->isActive'");
+        $result = $this->con->query("SELECT * from `temp_vendor` where `display_name` like '$dispayName' 
+        AND `vendor_type` = '$vendorType' AND `is_active` = '$this->isActive'");
 
         return $result->num_rows > 0;
     }
 
-    function isVendorExist($companyName, $firstName, $lastName, $vendorType)
+    function isVendorExist($companyName,$firstName,$lastName, $vendorType)
     {
         $dispayName = $companyName;
-        if (strlen(trim($companyName)) < 1) {
-            $dispayName = $firstName . " " . $lastName;
+        if (strlen(trim($companyName)) <1) {
+            $dispayName = $firstName." ".$lastName;
         }
-
-        $result = $this->con->query("SELECT * from `master_zoho_vendor` where `Display Name` like '$dispayName%'
-        AND `CF.Vendor type` = '$vendorType' AND `is_active` = '$this->isActive'");
+            
+        $result = $this->con->query("SELECT * from `master_zoho_vendor` where `display_name` like '$dispayName%'
+        AND `vendor_type` = '$vendorType' AND `is_active` = '$this->isActive'");
 
         return $result->num_rows > 0;
     }
 
     function updateTempVendorStatus($id, $modifiedById, $status)
     {
-
+       
         $this->con->query("UPDATE `temp_vendor` set `is_active` = '$status', `modified_by_id` = '$modifiedById' where `id` = '$id'");
-
+        
     }
-
-    function getZohoStateCode($state)
-    {
+    
+    function getZohoStateCode($state){
         $code = "";
         $result = $this->con->query("SELECT `code` from `zoho_valid_state` where `name` = '$state'");
-        if ($result->num_rows > 0) {
+        if ($result->num_rows >0) {
             $row = $result->fetch_assoc();
             $code = $row['code'];
         }
