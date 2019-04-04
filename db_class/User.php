@@ -106,6 +106,17 @@ class User
         }
         return $response;
     }
+
+    function fetchUser(){
+        $response = array();
+        $result = $this->con->query("SELECT `id`, `name` from `user` where `is_active` = '1'");
+        if ($result->num_rows >0) {
+            while ($row = $result->fetch_assoc()){
+                array_push($response,$row);
+            }
+        }
+        return $response;
+    }
     
     
     function getBaseLocation($related_table,$role_id){

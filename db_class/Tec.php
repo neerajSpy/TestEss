@@ -12,6 +12,8 @@ class Tec
     private $con;
     private $active;
     private $deactive;
+    private $basePath;
+    private $directoryPath;
 
     private $intercityTravel, $lodgingHotel;
     
@@ -26,6 +28,8 @@ class Tec
         $this->date = date("Y-m-d H:i:s");
         $this->intercityTravel = 'Intercity Travel cost';
         $this->lodgingHotel = 'Lodging - Hotels';
+        $this->directoryPath = "/doc/tec/";
+        $this->basePath = "http://ess.technitab.in".$this->directoryPath;
         $this->active = IS_ACTIVE;
         $this->deactive = DEACTIVE;
     }
@@ -227,22 +231,18 @@ class Tec
 
     function updateAttachment($tecFile, $tecEntryId, $tecId, $entryCateory)
     {
-        // echo "attachment".$tecEntryId." ".$tecId." ".$entryCateory;
+
         if (isset($_FILES[$tecFile]["type"])) {
             if (($_FILES[$tecFile]["type"] == "application/pdf") && ($_FILES[$tecFile]["size"] < 2097152)) {
-
-                $fileName = "";
-                $basePath = "http://ess.technitab.in/web_service/ESS/tec/";
-                $imagePath = "";
 
                 $sourcePath = $_FILES[$tecFile]['tmp_name'];
 
                 $extension = $this->getFileExtension($_FILES[$tecFile]["name"]);
                 $fileName = $tecId . '_' . $tecEntryId . '_' . $entryCateory . '.' . $extension;
 
-                $targetPath = $_SERVER['DOCUMENT_ROOT'] . "/web_service/ESS/tec/" . $fileName;
+                $targetPath = $_SERVER['DOCUMENT_ROOT'] .$this->directoryPath . $fileName;
                 move_uploaded_file($sourcePath, $targetPath);
-                $imagePath = $basePath . $fileName;
+                $imagePath = $this->basePath . $fileName;
                 // echo "image ".$imagePath;
                 $this->con->query("UPDATE `emp_tec_entry` set `attachment_path`= '$imagePath' where `id` = '$tecEntryId'");
             }
@@ -281,10 +281,6 @@ class Tec
         $prevBillAmount = $this->getPrevBillAmount($tec_id, $entry_id);
         $prevImagePath = $this->getPreviousTecPath($tec_id, $entry_id);
 
-        $fileName = "";
-        $basePath = "http://ess.technitab.in/web_service/ESS/tec/";
-        $imagePath = "";
-
         if (isset($_FILES[$tecFile]["type"])) {
             if (($_FILES[$tecFile]["type"] == "application/pdf") && ($_FILES[$tecFile]["size"] < 2097152)) {
 
@@ -293,9 +289,9 @@ class Tec
                 $extension = $this->getFileExtension($_FILES[$tecFile]["name"]);
                 $fileName = $tec_id . '_' . $entry_id . '_' . $entry_category . '.' . $extension;
 
-                $targetPath = $_SERVER['DOCUMENT_ROOT'] . "/web_service/ESS/tec/" . $fileName;
+                $targetPath = $_SERVER['DOCUMENT_ROOT'] .$this->directoryPath . $fileName;
                 move_uploaded_file($sourcePath, $targetPath);
-                $imagePath = $basePath . $fileName;
+                $imagePath = $this->basePath . $fileName;
             } else
                 return FALSE;
         } else {
@@ -661,7 +657,7 @@ class Tec
             $paidBy = 'Employee';
         }
         $totalExpense = 0;
-        $result = $this->con->query("SELECT SUM(`bill_amount`) as bill_amount from `emp_tec_entry` where `tec_id` = '$tecId' AND `paid_by` = '$paidBy'");
+        $result = $this->con->query("SELECT SUM(`bill_amount`) as bill_amount from `emp_tec_entry` where `tec_id` = '$tecId' AND `paid_by` = '$paidBy' AND `is_active` = '$this->active'");
         if ($result->num_rows >0) {
            $row = $result->fetch_assoc();
            $totalExpense = $row['bill_amount'];

@@ -13,6 +13,8 @@ class Vendor
 
     private $basePath;
 
+    private $directoryPath;
+
     private $isActive;
 
     private $deactive;
@@ -27,7 +29,9 @@ class Vendor
         $this->con = $db->dbConnect();
         date_default_timezone_set('Asia/Kolkata');
         $this->date = date("Y-m-d H:i:s");
-        $this->basePath = "http://ess.technitab.in/web_service/ESS/";
+
+        $this->directoryPath = "/doc/vendor_doc_pic/";
+        $this->basePath = "http://ess.technitab.in".$this->directoryPath;
         $this->isActive = IS_ACTIVE;
         $this->deactive = DEACTIVE;
 
@@ -137,14 +141,14 @@ class Vendor
         $idProofPath = "";
         if (isset($_FILES[$idProofFile]['tmp_name'])) {
             $idFileName = $createdById . '_' . $this->getMiliSecond() . "_" . rand() . '.' . $this->getFileExtension($_FILES['id_proof_attachment']['name']);
-            $idProofPath = $this->basePath . 'vendor_doc_pic/' . $idFileName;
+            $idProofPath = $this->basePath  . $idFileName;
         }
 
         $bankFileName = "";
         $bankPath = "";
         if (isset($_FILES[$bankFile]['tmp_name'])) {
             $bankFileName = $createdById . '_' . $this->getMiliSecond() . "_" . rand() . '.' . $this->getFileExtension($_FILES['bank_name_attachment']['name']);
-            $bankPath = $this->basePath . 'vendor_doc_pic/' . $bankFileName;
+            $bankPath = $this->basePath . $bankFileName;
         }
 
         $billFileName = "";
@@ -152,7 +156,7 @@ class Vendor
         if (isset($_FILES[$billFile]['tmp_name'])) {
 
             $billFileName = $createdById . '_' . $this->getMiliSecond() . "_" . rand() . '.' . $this->getFileExtension($_FILES['bill_attachment']['name']);
-            $billFilePath = $this->basePath . 'vendor_doc_pic/' . $billFileName;
+            $billFilePath = $this->basePath . $billFileName;
         }
 
         $placeOfSupply = $this->getZohoStateCode($billingState);
@@ -351,7 +355,7 @@ class Vendor
         $idProofPath = "";
         if (isset($_FILES[$idProofFile]['tmp_name'])) {
             $fileName = $createdById . '_' . $this->getMiliSecond() . "_" . rand() . '.' . $this->getFileExtension($_FILES['id_proof_attachment']['name']);
-            $idProofPath = $this->basePath . 'vendor_doc_pic/' . $fileName;
+            $idProofPath = $this->basePath . $fileName;
             $this->moveFile($_FILES[$idProofFile]['tmp_name'], $fileName);
         } else {
             $idProofPath = $vendorJson->id_proof_file;
@@ -360,7 +364,7 @@ class Vendor
         $bankPath = "";
         if (isset($_FILES[$bankFile]['tmp_name'])) {
             $fileName = $createdById . '_' . $this->getMiliSecond() . "_" . rand() . '.' . $this->getFileExtension($_FILES['bank_name_attachment']['name']);
-            $bankPath = $this->basePath . 'vendor_doc_pic/' . $fileName;
+            $bankPath = $this->basePath . $fileName;
             $this->moveFile($_FILES[$bankFile]['tmp_name'], $fileName);
         } else {
             $bankPath = $vendorJson->bank_file;
@@ -370,7 +374,7 @@ class Vendor
         if (isset($_FILES[$billFile]['tmp_name'])) {
 
             $fileName = $createdById . '_' . $this->getMiliSecond() . "_" . rand() . '.' . $this->getFileExtension($_FILES['bill_attachment']['name']);
-            $billFilePath = $this->basePath . 'vendor_doc_pic/' . $fileName;
+            $billFilePath = $this->basePath . $fileName;
             $this->moveFile($_FILES[$billFile]['tmp_name'], $fileName);
         } else {
             $billFilePath = $vendorJson->bill_file;
@@ -414,7 +418,7 @@ class Vendor
 
     private function moveFile($attachment, $fileName)
     {
-        $targetPath = $_SERVER['DOCUMENT_ROOT'] . "/web_service/ESS/vendor_doc_pic/" . $fileName;
+        $targetPath = $_SERVER['DOCUMENT_ROOT'] .$this->directoryPath . $fileName;
         if (move_uploaded_file($attachment, $targetPath)) {
             // echo "tax_number attached";
         }

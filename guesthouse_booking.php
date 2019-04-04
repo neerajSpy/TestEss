@@ -58,6 +58,11 @@ else if (strtolower($action) == 'assign_room') {
         $response = $db->acceptRequestBooking($bookingId, $roomId, $modifiedById);
         echo json_encode($response);
     }
+}else if(strtolower($action) == 'fetch_bookings'){
+    $db = new GuesthouseBooking();
+    $response = array();
+    $response = $db->fetchBooking();
+    echo json_encode($response);
 }
 
 

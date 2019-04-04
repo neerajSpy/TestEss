@@ -10,6 +10,8 @@ class Project
 
     private $isActive;
 
+    private $billingTypeArray;
+
     private $deactive;
 
     public function __construct()
@@ -24,6 +26,13 @@ class Project
         $this->con = $db->dbConnect();
         date_default_timezone_set('Asia/Kolkata');
         $this->date = date("Y-m-d H:i:s");
+
+        $this->billingTypeArray = array(
+            'based_on_staff_hours' => 'Based on Staff Hours',
+            'fixed_cost_for_project' => 'Fixed Cost for Project',
+            'based_on_project_hours' => 'Based on Project Hours',
+            "based_on_task_hours" => 'Based on Task Hours'
+        );
     }
 
     function insertProject($projectJson)
@@ -46,8 +55,8 @@ class Project
             $state = $projectJson->state;
         }
 
-        
-        if (! $this->isProjectExist($projectJson->project_name, $projectJson->project_type_id)) {
+
+        if (!$this->isProjectExist($projectJson->project_name, $projectJson->project_type_id)) {
 
             $result = $this->con->query("INSERT into `master_zoho_project` (`project_name`,`address`,
             `district`,`location`, `description`,`client_name`,`customer_name`, `cust_id`,
@@ -64,7 +73,7 @@ class Project
             // echo "result " . $result->num_rows . " insert error " . $this->con->error . "\n";
             if ($result === TRUE) {
                 $projectId = $this->con->insert_id;
-                $this->insertProjectActivity($projectId, $projectJson->project_type_id, $projectJson->created_by_id);
+                //$this->insertProjectActivity($projectId, $projectJson->project_type_id, $projectJson->created_by_id);
                 return $projectId;
             } else {
                 return QUERY_PROBLEM;
@@ -94,7 +103,7 @@ class Project
             $state = $projectJson->state;
         }
 
-        if (! $this->isProjectExist($projectJson->project_name, $projectJson->project_type_id)) {
+        if (!$this->isProjectExist($projectJson->project_name, $projectJson->project_type_id)) {
 
             $result = $this->con->query("INSERT into `master_zoho_project` (`project_name`,`address`,
             `district`,`location`, `description`,`client_name`,`customer_name`, `cust_id`,
@@ -111,50 +120,61 @@ class Project
             // echo "result " . $result->num_rows . " insert error " . $this->con->error . "\n";
             if ($result === TRUE) {
                 $projectId = $this->con->insert_id;
-                $this->insertProjectActivity($projectId, $projectJson->project_type_id, $projectJson->created_by_id);
-                $this->insertProjectUser($projectId, $projectJson->created_by_id, $projectJson->modified_by_id);
+                //$this->insertProjectActivity($projectId, $projectJson->project_type_id, $projectJson->created_by_id);
+                // $this->insertProjectUser($projectId, $projectJson->created_by_id, $projectJson->modified_by_id);
                 $this->approveTempProject($projectJson->id, $projectJson->modified_by_id);
-               
-                $this->assignProjectToUser($projectId, $projectJson->project_type_id, $projectJson->created_by_id, $projectJson->modified_by_id);
-               //  echo "activity user Id ".$activityUserId;
+
+                //$this->assignProjectToUser($projectId, $projectJson->project_type_id, $projectJson->created_by_id, $projectJson->modified_by_id);
+                //  echo "activity user Id ".$activityUserId;
                 return $projectId;
             } else {
                 return QUERY_PROBLEM;
             }
         } else {
-            $projectId = $this->getProjectId($projectJson->project_name, $projectJson->project_type_id);
-            $this->approveTempProject($projectId, $projectJson->modified_by_id);
-             
-            $this->assignProjectToUser($projectId, $projectJson->project_type_id, $projectJson->created_by_id, $projectJson->modified_by_id);
-            // echo "activity user Id ".$activityUserId;
-            return $projectId;
+            return EXIST;
         }
     }
 
-    function insertProjectActivity($projectId, $projectTypeId, $userId)
+    
+    function insertProjectActivity($projectId, $projectTypeId, $activityJson, $userId, $createdById)
     {
-        $projectTypeResult = $this->con->query("SELECT * from `project_type_activity_type` WHERE `project_type_id` = '$projectTypeId'");
-        if ($projectTypeResult->num_rows > 0) {
+        $lastId = 0;
+        foreach ($activityJson as $value) {
+            $result = $this->con->query("INSERT INTO `activity` (`project_id`,`project_type_id`,`activity_type_id`, `name`,`budget_hour`,
+                `planned_start_date`, `planned_end_date`,`created_by_id`,`created_date`) VALUES('$projectId','$projectTypeId','$value->activity_type_id',
+                 '$value->activity_type','$value->project_budget_hours', '$value->planned_start_date', '$value->planned_end_date','$createdById','$this->date')");
 
-            while ($row = $projectTypeResult->fetch_array()) {
-                $activityTypeId = $row['id'];
-
-                $this->con->query("INSERT INTO `activity` (`project_id`,
-                `project_type_id`,`activity_type_id`,`created_by_id`,`created_date`) 
-                VALUES('$projectId','$projectTypeId','$activityTypeId',
-                '$userId','$this->date')");
-
-               //  echo " insert activity " . $this->con->insert_id . " error " . $this->con->error."\n";
+            if ($result === TRUE) {
+                $activityId = $this->con->insert_id;
+                $lastId = $activityId;
+                $this->assignProjectToUser($projectId, $activityId, $value->activity_type_id, $userId, $createdById);
             }
         }
+
+        $this->insertProjectUser($projectId, $userId, $createdById);
+        
+        return $lastId > 0;
+    }
+
+
+    function assignProjectToUser($projectId, $activityId, $activityTypeId, $userId, $createdById)
+    {
+        $this->con->query("INSERT INTO `activity_user` (`project_id`,`activity_id`,`activity_type_id`,`user_id`,`created_by_id`,
+                    `created_date`) VALUES ('$projectId','$activityId','$activityTypeId','$userId','$createdById','$this->date')");
+        
+
     }
 
     function insertProjectUser($projectId, $userId, $createdById)
     {
-        $this->con->query("INSERT into `project_user` (`project_id`,`user_id`,`created_by_id`,
-        `created_date`) VALUES ('$projectId','$userId','$createdById','$this->date')");
+        $result = $this->con->query("SELECT `id` from `project_user` WHERE `project_id` = '$projectId' AND `user_id` = '$userId'");
 
-         //echo "insert project User ".$this->con->insert_id." error ".$this->con->error."\n";
+        if ($result->num_rows < 1) {
+            $this->con->query("INSERT into `project_user` (`project_id`,`user_id`,`created_by_id`,
+        `created_date`) VALUES ('$projectId','$userId','$createdById','$this->date')");
+        }
+
+        //echo "insert project User ".$this->con->insert_id." error ".$this->con->error."\n";
     }
 
     function fetchRequestedProject()
@@ -176,7 +196,35 @@ class Project
                 ));
             }
         }
-        
+
+        return $response;
+    }
+
+    function fetchActivityType($projectId, $projectTypeId, $billingType)
+    {
+        $response = array();
+        if (strtolower($billingType) == strtolower($this->billingTypeArray['based_on_staff_hours'])) {
+
+            $result = $this->con->query("SELECT `id`, `activity_type` FROM `project_type_activity_type` WHERE `project_type_id` = '$projectTypeId'");
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    array_push($response, array("id" => 0, "activity_type_id" => $row['id'], "activity_type" => $row['activity_type'], "project_budget_hour" => 0,
+                        "planned_start_date" => "", "planned_end_date" => ""));
+                }
+            }
+
+
+        } else {
+            $result = $this->con->query("SELECT `id`,`activity_type_id`, `name`, `budget_hour`, `planned_start_date` , `planned_end_date` 
+            from `activity` WHERE `project_id` = '$projectId' AND `project_type_id` = '$projectTypeId'");
+
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    array_push($response, array("id" => $row['id'], "activity_type_id" => $row['activity_type_id'], "activity_type" => $row['name'], "project_budget_hour" => $row['budget_houer'],
+                        "planned_start_date" => $row['planned_start_date'], "planned_end_date" => $row['planned_end_date']));
+                }
+            }
+        }
         return $response;
     }
 
@@ -189,43 +237,6 @@ class Project
         return $result;
     }
 
-    function assignProjectToUser($projectId, $projectTypeId, $userId, $createdById)
-    {
-        if (! $this->isProjectAssignToUser($projectId, $userId)) {
-
-            $activityUserId = 0;
-            $activityResult = $this->con->query("SELECT DISTINCT `id`,`activity_type_id` 
-          from `activity` WHERE `project_id` = '$projectId' AND `project_type_id` = 
-          '$projectTypeId'");
-
-            if ($activityResult->num_rows > 0) {
-                while ($row = $activityResult->fetch_assoc()) {
-
-                    $id = $row['id'];
-                    $activityTypeId = $row['activity_type_id'];
-
-                    $result = $this->con->query("INSERT INTO `activity_user` (`project_id`,
-                    `activity_id`,`activity_type_id`,`user_id`,`created_by_id`,
-                    `created_date`) VALUES ('$projectId','$id','$activityTypeId',
-                    '$userId','$createdById','$this->date')");
-
-                   // echo "insert activity User ".$this->con->insert_id." error ".$this->con->error."\n";
-                    if ($result === TRUE) {
-                        $activityUserId = $this->con->insert_id;
-                    }
-                }
-            }
-            
-
-            if ($activityUserId > 0) {
-                return $activityUserId;
-            } else {
-                return QUERY_PROBLEM;
-            }
-        } else {
-            return EXIST;
-        }
-    }
 
     function isProjectAssignToUser($projectId, $userId)
     {
@@ -235,10 +246,10 @@ class Project
 
     function approveTempProject($projectId, $modifiedById)
     {
-         $this->con->query("UPDATE `temp_project` set `is_active` = '$this->deactive', `modified_by` = '$modifiedById', `modified_date` = '$this->date' where `id` = '$projectId'");
-        
+        $this->con->query("UPDATE `temp_project` set `is_active` = '$this->deactive', `modified_by_id` = '$modifiedById', `modified_date` = '$this->date' where `id` = '$projectId'");
+
         // echo "temp approve project ".$this->con->affected_rows." temp project error ".$this->con->error."\n";
-        
+
     }
 
     function insertTempProject($projectJson)
@@ -252,7 +263,7 @@ class Project
             $state = $projectJson->state;
         }
 
-        if (! $this->isTempProjectExist($projectJson->project_name, $projectJson->project_type_id)) {
+        if (!$this->isTempProjectExist($projectJson->project_name, $projectJson->project_type_id)) {
 
             $result = $this->con->query("INSERT into `temp_project` (`project_name`,`address`,
             `district`,`location`, `description`,`client_name`,`customer_name`, `cust_id`,
@@ -286,7 +297,7 @@ class Project
             $state = $projectJson->state;
         }
 
-        if (! $this->isUpdateTempExist($projectJson->id, $projectJson->project_name, $projectJson->project_type_id)) {
+        if (!$this->isUpdateTempExist($projectJson->id, $projectJson->project_name, $projectJson->project_type_id)) {
 
             $result = $this->con->query("UPDATE `temp_project` set `project_name` = '$projectJson->project_name',
             `address` = '$projectJson->address',`district` = '$projectJson->district',
@@ -309,28 +320,30 @@ class Project
             return EXIST;
         }
     }
-    
-    function getProjectNameById($id){
+
+    function getProjectNameById($id)
+    {
         $projectName = "";
         $result = $this->con->query("SELECT `project_name` from `master_zoho_project` where `id` = '$id'");
-        if($result->num_rows >0){
-            $row = $result->fetch_assoc();
-            $projectName = $row['project_name'];
-        }
-        return $projectName;
-    }
-    
-    function getProjectNameByTripId($id){
-        $projectName = "";
-        $result = $this->con->query("SELECT mzp.`project_name` from `expense_trip` as et JOIN `master_zoho_project` as mzp on et.`project_id` = mzp.`id` where et.`id` = '$id'");
-        if($result->num_rows >0){
+        if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
             $projectName = $row['project_name'];
         }
         return $projectName;
     }
 
-    // request exiting project to assign
+    function getProjectNameByTripId($id)
+    {
+        $projectName = "";
+        $result = $this->con->query("SELECT mzp.`project_name` from `expense_trip` as et JOIN `master_zoho_project` as mzp on et.`project_id` = mzp.`id` where et.`id` = '$id'");
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $projectName = $row['project_name'];
+        }
+        return $projectName;
+    }
+
+// request exiting project to assign
     function requestProjectToAssign($projectId, $userId)
     {
         $result = $this->con->query("INSERT INTO `request_assign_project` (`project_id`, `created_by_id`,
@@ -392,7 +405,8 @@ class Project
         return $response;
     }
 
-    private function getProjectTypeId($projectId)
+    private
+    function getProjectTypeId($projectId)
     {
         $projectTypeId = 0;
         $result = $this->con->query("SELECT `project_type_id` From `master_zoho_project` WHERE `id` ='$projectId'");

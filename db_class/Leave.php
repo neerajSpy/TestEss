@@ -1,6 +1,6 @@
 <?php
 
-// namespace db_opertion;
+// namespace db_class;
 /* error_reporting(E_ALL);
 ini_set('display_errors', 1);*/
 
@@ -68,31 +68,45 @@ class Leave
         return $response;
     }
 
-   
-    function approveLeave($leaveRequestId, $approvedById)
+
+    function approveLeave($leaveRequestId, $approvedById, $status, $comment = null)
     {
-        $result = $this->updateLeaveRequestStatus($leaveRequestId, $approvedById, $this->leaveStatusIdArray['approve']);
-        if ($result === TRUE) {
+
+        if (strtolower($status) == "approve") {
+            $statusId = $this->leaveStatusIdArray['approved'];
+        } else {
+            $statusId = $this->leaveStatusIdArray['rejected'];
+        }
+
+        if ($comment == null) {
+            $comment = "";
+        }
+
+        $result = $this->updateLeaveRequestStatus($leaveRequestId, $approvedById, $statusId, $comment);
+        if ($result === TRUE && $statusId = $this->leaveStatusIdArray['approved']) {
             $entitledResult = $this->updateEntitlement($leaveRequestId, $approvedById);
             if ($entitledResult === TRUE) {
                 $this->insertLeaveEntitlementLog($leaveRequestId, $approvedById);
             }
         }
+        return $result;
     }
-    
-    function leaveRequest($leaveJson){
-        return $this->proceedLeave($leaveJson,$this->leaveStatusIdArray['pending']);
+
+    function leaveRequest($leaveJson)
+    {
+        return $this->proceedLeave($leaveJson, $this->leaveStatusIdArray['pending']);
     }
-    
-    function assignLeave($leaveJson){
-        $result = $this->proceedLeave($leaveJson,$this->leaveStatusIdArray['approve']);
-        if ($result >0) {
-            $this->approveLeave($result, $leaveJson->created_by_id);
+
+    function assignLeave($leaveJson)
+    {
+        $result = $this->proceedLeave($leaveJson, $this->leaveStatusIdArray['approved']);
+        if ($result > 0) {
+            $this->approveLeave($result, $leaveJson->created_by_id, "approve", null);
         }
         return $result;
     }
 
-    function proceedLeave($leaveJson,$status)
+    function proceedLeave($leaveJson, $status)
     {
         $userId = $leaveJson->user_id;
         $leaveType = $leaveJson->leave_type;
@@ -105,18 +119,18 @@ class Leave
         $leaveLocation = $leaveJson->leave_location;
         $createdById = $leaveJson->created_by_id;
 
-        if (! ($this->isLeavePresent($userId, $leaveType, $startDate, $endDate, $shift))) {
+        if (!($this->isLeavePresent($userId, $leaveType, $startDate, $endDate, $shift))) {
 
             if ($this->isSufficientLeave($userId, $leaveType, $startDate, $endDate, $duration)) {
                 $leaveTypeId = $this->getLeaveTypeId($leaveType);
-                $leaveRequestId = $this->generateLeaveRequestId($userId, $leaveTypeId, $startDate, $endDate, $leaveLocation, $reason, $description, $createdById, $duration,$status);
+                $leaveRequestId = $this->generateLeaveRequestId($userId, $leaveTypeId, $startDate, $endDate, $leaveLocation, $reason, $description, $createdById, $duration, $status);
                 if ($leaveRequestId != QUERY_PROBLEM) {
-                    $id = $this->insertLeave($leaveRequestId, $userId, $startDate, $endDate, $leaveTypeId, $shift, $duration, $description, $createdById,$status);
-                    
-                    if ($id >0) {
+                    $id = $this->insertLeave($leaveRequestId, $userId, $startDate, $endDate, $leaveTypeId, $shift, $duration, $description, $createdById, $status);
+
+                    if ($id > 0) {
                         $this->sendLeaveMail($leaveJson, $userId, $createdById, $startDate, $endDate, $duration, $leaveTypeId);
                     }
-                    
+
                     return $id;
                 } else {
                     return QUERY_PROBLEM;
@@ -132,7 +146,7 @@ class Leave
     function updateEntitlement($leaveRequestId, $modifiedById)
     {
         $this->con->query("UPDATE `leave_entitlement` as et, (SELECT * FROM `user_leave_request` WHERE `id` = '$leaveRequestId') 
-      as ulr SET et.`used_leave` = et.`used_leave`- ulr.`total_leaves`, et.`balance_leave` =  
+      as ulr SET et.`used_leave` = et.`used_leave`+ ulr.`total_leaves`, et.`balance_leave` =  
       et.`balance_leave` - ulr.`total_leaves`, `modified_by_id` = '$modifiedById', `modified_date` = '$this->date'
       WHERE et.`user_id` = ulr.`applied_by_id` AND et.`leave_type_id` = ulr.`leave_type_id`");
 
@@ -162,13 +176,28 @@ class Leave
         }
     }
 
-    function updateLeaveRequestStatus($leaveRequestId, $approvedById, $statusId)
+
+    function approveLeaveMail($approveById, $leaveRequestId)
     {
-        $this->con->query("UPDATE `user_leave_request` set `leave_status_id` = '$statusId', `status_by_id` = '$approvedById', `status_date` = '$this->date' where `id` = '$leaveRequestId' ");
+        include_once 'SendMail.php';
+        $mailObj = new SendMail();
+
+        $response = $this->getLeaveDataById($leaveRequestId);
+        $entitleUserData = $this->getEntitledUserData($response['user_id'],$response['leave_type_id']);
+
+        $mailObj->approveLeaveMail($response,$approveById,$entitleUserData['entitled_leave'], $entitleUserData['used_leave'], $entitleUserData['balance_leave']);
+
+
+    }
+
+    function updateLeaveRequestStatus($leaveRequestId, $approvedById, $statusId, $comment)
+    {
+        $this->con->query("UPDATE `user_leave_request` set `leave_status_id` = '$statusId', `status_by_id` = '$approvedById',`status_description` = '$comment', `status_date` = '$this->date' where `id` = '$leaveRequestId' ");
+
         return $this->con->affected_rows > 0;
     }
 
-    function insertLeave($leaveRequestId, $userId, $startDate, $endDate, $leaveTypeId, $shift, $duration, $description, $createdById,$status)
+    function insertLeave($leaveRequestId, $userId, $startDate, $endDate, $leaveTypeId, $shift, $duration, $description, $createdById, $status)
     {
         $begin = new DateTime($startDate);
         $end = new DateTime($endDate);
@@ -209,14 +238,16 @@ class Leave
         return $lastInsertId;
     }
 
-    function generateLeaveRequestId($userId, $leaveTypeId, $startDate, $endDate, $leaveLocation, $reason, $description, $createdById, $durationValue,$status)
+    function generateLeaveRequestId($userId, $leaveTypeId, $startDate, $endDate, $leaveLocation, $reason, $description, $createdById, $durationValue, $status)
     {
+
         $totalLeaves = $this->countUserLeaveAquireDays($startDate, $endDate, $durationValue);
         $totalDays = $this->getTotalLeaveDays($startDate, $endDate);
 
-        $result = $this->con->query("INSERT into `user_leave_request` (`user_id`,`leave_type_id`,`total_days`,`start_date`,`end_date`,`duration`,
-        `total_leaves`,`leave_location`,`reason`,`description`,`leave_status_id`,`applied_by_id`,`applied_date`) VALUES ('$userId',
-         '$leaveTypeId','$totalDays','$totalLeaves','$startDate','$endDate','$durationValue','$leaveLocation','$reason','$description','$status','$createdById','$this->date')");
+        $result = $this->con->query("INSERT into `user_leave_request` (`user_id`,`leave_type_id`,`total_days`,`total_leaves`,`start_date`,`end_date`,
+        `duration`,`leave_location`,`reason`,`description`,`leave_status_id`,`applied_by_id`,`applied_date`) VALUES ('$userId','$leaveTypeId',
+        '$totalDays','$totalLeaves','$startDate','$endDate','$durationValue','$leaveLocation','$reason','$description','$status','$createdById',
+        '$this->date')");
 
         if ($result === TRUE) {
             return $this->con->insert_id;
@@ -258,6 +289,15 @@ class Leave
         }
 
         return $canTake;
+    }
+
+    function getLeaveDataById($requestId)
+    {
+        $response = array();
+        $result = $this->con->query("SELECT * from `user_leave_request` WHERE `id` = '$requestId'");
+        if ($result->num_rows > 0)
+            $response = $result->fetch_assoc();
+        return $response;
     }
 
     function getShiftId($shift)
@@ -305,7 +345,6 @@ class Leave
         } else {
             $count = $totalWeekDays - 0.5;
         }
-
         return $count;
     }
 

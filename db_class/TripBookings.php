@@ -30,7 +30,7 @@ class TripBookings
         $this->con = $db->dbConnect();
         date_default_timezone_set('Asia/Kolkata');
         $this->date = date("Y-m-d H:i:s");
-        $this->bookingDirectoryPath = "/web_service/ESS/trip_booking/";
+        $this->bookingDirectoryPath = "/doc/trip_booking/";
         $this->bookingBasePath = "http://ess.technitab.in".$this->bookingDirectoryPath;
         $this->active = IS_ACTIVE;
         $this->deactive = DEACTIVE;
@@ -146,7 +146,6 @@ class TripBookings
             $this->insertTripBookingMember($tripBookingMember, $bookingId, $createdById);
             return $bookingId;
         } else {
-            echo "error " . $this->con->error . "\n";
             return QUERY_PROBLEM;
         }
     }

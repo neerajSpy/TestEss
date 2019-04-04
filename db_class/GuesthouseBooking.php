@@ -26,12 +26,10 @@ class GuesthouseBooking
 
 
         $this->bookingStatusArray = array(
-            'requested' => 1,
-            'booked' => 2,
-            'payment_done' => 3,
-            "request_rejected" => 4,
-            'cancelled' => 5,
-            'leave' => 6
+            'booked' => 1,
+            'payment_done' => 2,
+            'cancelled' => 3,
+
         );
 
         $this->roomAvailableStatusIdArray = array(
@@ -61,7 +59,7 @@ class GuesthouseBooking
 
     }
 
-    function acceptRequestBooking($bookingId, $roomId, $userId)
+    function acceptRequestBooking($bookingId, $userId)
     {
         if ($this->updateBookingStatus($bookingId, $userId, $this->bookingStatusArray['booked'])) {
             return TRUE;
@@ -86,13 +84,17 @@ class GuesthouseBooking
         $sqlQuery = "";
 
         if ($userId != NULL && $statusId == NULL) {
-            $sqlQuery = "SELECT gb.*, u.`name` from `guest_bookings` as gb join `user` as u on gb.`created_by_id` = u.`id` where gb.`created_by_id` = '$userId'";
+            $sqlQuery = "SELECT gb.*, u.`name`, gbs.`name` as `status` from `guest_bookings` as gb join `user` as u on gb.`created_by_id` = u.`id` JOIN 
+            `guesthouse_booking_status` as gbs on gbs.`id` = gb.`booking_status_id` where gb.`created_by_id` = '$userId'";
         } else if ($userId == NULL && $statusId != NULL) {
-            $sqlQuery = "SELECT gb.*, u.`name` from `guest_bookings` as gb join `user` as u on gb.`created_by_id` = u.`id` where gb.`booking_status_id` = '$statusId'";
+            $sqlQuery = "SELECT gb.*, u.`name`, gbs.`name` as `status`  from `guest_bookings` as gb join `user` as u on gb.`created_by_id` = u.`id` JOIN 
+            `guesthouse_booking_status` as gbs on gbs.`id` = gb.`booking_status_id` where gb.`booking_status_id` = '$statusId'";
         } else if ($userId != NULL && $statusId != NULL) {
-            $sqlQuery = "SELECT gb.*, u.`name` from `guest_bookings` as gb join `user` as u on gb.`created_by_id` = u.`id` where gb.`created_by_id` = '$userId' AND gb.`booking_status_id` = '$statusId'";
+            $sqlQuery = "SELECT gb.*, u.`name` , gbs.`name` as `status` from `guest_bookings` as gb join `user` as u on gb.`created_by_id` = u.`id` JOIN 
+            `guesthouse_booking_status` as gbs on gbs.`id` = gb.`booking_status_id` where gb.`created_by_id` = '$userId' AND gb.`booking_status_id` = '$statusId'";
         } else {
-            $sqlQuery = "SELECT gb.*, u.`name` from `guest_bookings` as gb join `user` as u on gb.`created_by_id` = u.`id` where gb.`created_by_id` = '$userId' AND gb.`booking_status_id` = '$statusId'";
+            $sqlQuery = "SELECT gb.*, u.`name`, gbs.`name` as `status` from `guest_bookings` as gb join `user` as u on gb.`created_by_id` = u.`id` JOIN 
+            `guesthouse_booking_status` as gbs on gbs.`id` = gb.`booking_status_id` ORDER BY gb.`id` DESC ";
         }
 
         $result = $this->con->query($sqlQuery);
