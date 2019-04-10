@@ -135,7 +135,7 @@ class Project
         }
     }
 
-    
+
     function insertProjectActivity($projectId, $projectTypeId, $activityJson, $userId, $createdById)
     {
         $lastId = 0;
@@ -220,7 +220,7 @@ class Project
 
             if ($result->num_rows > 0) {
                 while ($row = $result->fetch_assoc()) {
-                    array_push($response, array("id" => $row['id'], "activity_type_id" => $row['activity_type_id'], "activity_type" => $row['name'], "project_budget_hour" => $row['budget_houer'],
+                    array_push($response, array("id" => $row['id'], "activity_type_id" => $row['activity_type_id'], "activity_type" => $row['name'], "project_budget_hour" => $row['budget_hour'],
                         "planned_start_date" => $row['planned_start_date'], "planned_end_date" => $row['planned_end_date']));
                 }
             }
