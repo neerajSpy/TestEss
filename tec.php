@@ -218,6 +218,25 @@ else if(strtolower($action) == "link_booking_tec"){
     echo json_encode($response);
 }
 
+else if(strtolower($action) == "fetch_tec"){
+    $page = json_decode($_POST['page']);
+    $orderBy = $_POST['order_by'];
+    $orderType = $_POST['order_type'];
+
+    $db = new Tec();
+    $response = $db->fetchTec($page,$orderBy,$orderType);
+    echo json_encode($response);
+}
+
+else if(strtolower($action) == "search_tec"){
+    $page = json_decode($_POST['page']);
+    $searchText = $_POST['search_text'];
+
+    $db = new Tec();
+    $response = $db->searchTec($page,$searchText);
+    echo json_encode($response);
+}
+
 function checkValidEntry($file, $entryJson)
 {
     $error = FALSE;
