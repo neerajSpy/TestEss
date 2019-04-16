@@ -87,6 +87,7 @@ class Leave
             $entitledResult = $this->updateEntitlement($leaveRequestId, $approvedById);
             if ($entitledResult === TRUE) {
                 $this->insertLeaveEntitlementLog($leaveRequestId, $approvedById);
+                $this->approveLeaveMail($approvedById,$leaveRequestId);
             }
         }
         return $result;

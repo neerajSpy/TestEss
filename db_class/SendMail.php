@@ -667,6 +667,30 @@ class SendMail
                        ';
         return $this->sendEmail($from, $to, $CC, $BCC, $message, $subject);
     }
+    
+    
+    function passwordMail($email,$key){
+        $output = '<p>Dear user,</p>';
+        $output .= '<p>Please click on the following link to reset your password.</p>';
+        $output .= '<p>-------------------------------------------------------------</p>';
+        $output .= '<p><a href="http://ess.technitab.in/reset_password.php?key=' . $key . '&email=' . $email . '&action=reset" target="_blank">
+https://ess.technitab.in/reset_password.php?key=' . $key . '&email=' . $email . '&action=reset</a></p>';
+        $output .= '<p>-------------------------------------------------------------</p>';
+        $output .= '<p>Please be sure to copy the entire link into your browser.
+The link will expire after 1 day for security reason.</p>';
+        $output .= '<p>If you did not request this forgotten password email, no action 
+is needed, your password will not be reset. However, you may want to log into 
+your account and change your security password as someone may have guessed it.</p>';
+        $output .= '<p>Thanks,</p>';
+        $output .= '<p>ESS </p>';
+        $body = $output;
+        $subject = "ESS Reset password";
+
+        $to = $email;
+        $from = 'ess.technitab@no-reply.com';
+        
+        $this->sendEmail($from,$to,'','',$body,$subject);
+    }
 
     function sendEmail($from, $to, $CC, $BCC, $message, $subject)
     {
