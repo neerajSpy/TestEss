@@ -31,7 +31,7 @@ class LeaveController extends Controller
             ->update(['status' => 'submit','claim_end_date' => $claimEndDate,'user_note' => $userNote,'total_amount' => $total_amount[0]->amount,'submit_date' => date('Y-m-d h:i:s'),'submit_by_id' => $userId,'modified_date' => date('Y-m-d h:i:s'),'modified_by_id' => $userId]);
     
 	if ($result == 1) {
-	    $result = $this->createTecLog($tecId, $userId,$userNote,'submit');
+	    $result = $this->createTecLog($tecId, $userId,$userNote,'submit',"");
 	    if ($result == 1) {
             	return $result;
 	    }else{
@@ -102,12 +102,8 @@ class LeaveController extends Controller
             $departureTime = date('H:i:s', strtotime($adminDepartureDateTime));
             $arrivalDate = date('Y-m-d', strtotime($adminArrivalDateTime));
             $arrivalTime = date('H:i:s', strtotime($adminArrivalDateTime));
-           
-            
 
             $data = $this->getUnitPriceQtyOfBooking($bookingId, $travelType);
-
-
           
             if (strtolower(trim($adminBookngMode)) == 'bus' || strtolower(trim($adminBookngMode)) == 'train' || strtolower(trim($travelType)) == 'flight') {
 
@@ -138,7 +134,7 @@ class LeaveController extends Controller
 					'created_date' =>$bill_date->created_date,
 					'created_by_id' => $bill_date->created_by_id,
 					'paid_to_id' => $adminVendorId,
-					'attachment_path' => $adminBookngAttachment,
+                    'attachment_path'=>$adminBookngAttachment
 				);
 	  	
                
@@ -157,11 +153,8 @@ class LeaveController extends Controller
 					'entry_category' => 'Lodging - Hotels',
 					'travel_mode' => $adminBookngMode,
 					'location' => $adminCityArea,
-					
 					'deprt_date' => $adminCheckIn ,
-					
 					'arrival_date' => $adminCheckOut,
-					
 					'unit_price' => $data['rate'] ,
 					'total_quantitty' => $data['quantity'] ,
 					'date' => $bill_date->bill_date,
@@ -172,13 +165,16 @@ class LeaveController extends Controller
 					'created_date' =>$bill_date->created_date,
 					'created_by_id' => $bill_date->created_by_id,
 					'paid_to_id' => $adminVendorId,
-					'attachment_path' => $adminBookngAttachment,
+                    'attachment_path'=>$adminBookngAttachment
 				);
 
 	  	
             }
 
             $result = DB::table('emp_tec_entry')->insert($data);
+
+            //$result = DB::insert('insert into `emp_tec_entry` (`entry_category`) values (?)', ['Dayle']);
+
             if ($result === TRUE) {
                 $this->insertTecIdIntoBooking($tecId, $bookingId);
                 $linkBookingsOnTecCount++;
@@ -192,7 +188,7 @@ class LeaveController extends Controller
         }
     }
 
-    function updateTecByAdmin($userId,$tecId,$status,$remark){
+    function updateTecByAdmin($userId,$tecId,$status,$remark,$tecBlockValue){
        
         if (strtolower($status) == 'draft' || strtolower($status) == 'submit') {
 		$result = DB::table('emp_main_tec')
@@ -207,7 +203,7 @@ class LeaveController extends Controller
         }
         
         if ($result == 1) {
-		$result = $this->createTecLog($tecId, $userId, $remark, $status);
+		$result = $this->createTecLog($tecId, $userId, $remark, $status,$tecBlockValue);
 		if ($result == 1) {
 			return $result;
 		}else{
@@ -246,11 +242,12 @@ class LeaveController extends Controller
             }
         }
     }
-    function createTecLog($tecId,$userId,$comment,$tecStatus){
+    function createTecLog($tecId,$userId,$comment,$tecStatus,$tecBlockValue){
 	$data = array("tec_id" => $tecId,
 			"comment" => $comment,
 			"status" => $tecStatus,
 			"created_by_id" => $userId,
+            "tec_block_value" => $tecBlockValue,
 			"created_date" => date('Y-m-d h:i:s')
 
 			);
@@ -283,9 +280,10 @@ class LeaveController extends Controller
     $userId = $post['user_id'];
     $status = $post['status'];
     $remark = ($post['remark'] != "" ) ? $post['remark'] : "";
+    $tecBlockValue = ($post['tec_block_value'] != "" ) ? $post[',$tec_block_value'] : "0";
 
     
-    $result = $this->updateTecByAdmin($userId, $tecId, $status, $remark);
+    $result = $this->updateTecByAdmin($userId, $tecId, $status, $remark,$tecBlockValue);
    
         $tecStatus = "";
         if ($status == "draft") {
@@ -309,6 +307,8 @@ class LeaveController extends Controller
         $this->sendNotificationToUser($createdById, $userId,'Update Tec', $notificationArr);
     }else{
 	
+
+    
 	$bookingJson = (!empty($post['booking_json'])) ? json_decode($post['booking_json']) : "";
     	$claimEndDate = $post['claim_end_date'];
     	$tecId = $post['tec_id'];
@@ -332,8 +332,10 @@ class LeaveController extends Controller
 		
 		$data['intercity_cost'] = DB::table('emp_main_tec')
 					->join('emp_tec_entry', 'emp_main_tec.id', '=', 'emp_tec_entry.tec_id')
-                     ->select('emp_main_tec.*','emp_main_tec.id as emp_id','emp_tec_entry.*','emp_tec_entry.id as tes_id')
+                     ->select('emp_main_tec.*','emp_main_tec.id as emp_id','emp_tec_entry.*','emp_tec_entry.id as tes_id',
+                        DB::raw('CONCAT(emp_tec_entry.deprt_date," ",emp_tec_entry.deprt_time) as full_time'))
                      ->where(array('emp_tec_entry.entry_category'  => 'Intercity Travel cost','emp_main_tec.id'  => $id,"emp_tec_entry.is_active" =>'0'))
+                     ->orderBy('full_time','ASC')
                      ->get()->toArray();
 		// DB::enableQueryLog();			 
 		$data['intercity_cost_sum_user'] = DB::table('emp_main_tec')
@@ -363,7 +365,7 @@ class LeaveController extends Controller
                      ->select(DB::raw("SUM(emp_tec_entry.bill_amount) as count"))
                      ->where(array('emp_tec_entry.paid_by'  => 'Employee','emp_tec_entry.entry_category'  => 'Lodging - Hotels','emp_main_tec.id'  => $id,"emp_tec_entry.is_active" =>'0'))
                      ->get()->first();
-		$data['lodging_cost_sum_ccount'] = DB::table('emp_main_tec')
+		$data['lodging_cost_sum_account'] = DB::table('emp_main_tec')
 					->join('emp_tec_entry', 'emp_main_tec.id', '=', 'emp_tec_entry.tec_id')
 					
                      ->select(DB::raw("SUM(emp_tec_entry.bill_amount) as count"))

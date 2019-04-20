@@ -34,9 +34,9 @@ if($result->num_rows >0){
         $response['email'] = $row['email'];
         $response['mobile_number'] = $row['mobile_number'];
         $response['related_table'] = $row['related_table'];
-        $baseLocation = getBaseLocation($con,$row['related_table'],$row['role_id']);
-        /*echo "base_location ".$baseLocation;*/
-        $response['base_office_location'] = $baseLocation;
+        $userData = getUserData($con,$row['related_table'],$row['role_id']);
+        $response['base_office_location'] = $userData['base_office_location'];
+        $response['image'] = "http://ess.technitab.in".$userData['image_path'];
     }
 }
 }else{
@@ -60,15 +60,16 @@ function getAppliedDate(){
 }
 
 
-function getBaseLocation($con,$related_table,$role_id){
-    $baseLocation = "";
-    $result = $con->query("SELECT * from $related_table where `id` = '$role_id'");
+function getUserData($con,$related_table,$role_id){
+    $userData  = array();
+    $result = $con->query("SELECT `base_office_location`,`image_path` from $related_table where `id` = '$role_id'");
     if ($result->num_rows >0) {
         if ($row = $result->fetch_assoc()) {
-            $baseLocation = $row['base_office_location'];
+            $userData['base_office_location'] = $row['base_office_location'];
+            $userData['image_path'] = $row['image_path'];
         }
     }
-    return $baseLocation;
+    return $userData;
 }
 
 function isEmailValid($con,$email){

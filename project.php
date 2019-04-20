@@ -127,108 +127,6 @@ if (strtolower($action) == 'submit') {
 
         echo json_encode($response);
     }
-} else if (strtolower($action) == 'request project') {
-    if (!checkMandatoryParameter(array('action'))) {
-        $projectId = $_POST['id'];
-        $projectName = $_POST['project_name'];
-        $userId = $_POST['user_id'];
-        $db = new Project();
-        $result = $db->requestProjectToAssign($projectId, $userId);
-        $response = array();
-
-        if ($result == QUERY_PROBLEM) {
-            $response['id'] = 0;
-            $response['error'] = TRUE;
-            $response['message'] = "Project not saved";
-        } else {
-            $response['id'] = $result;
-            $response['error'] = FALSE;
-            $response['message'] = "Successfully request generated";
-
-            $notificationDb = new SendNotification();
-            $notificationArr = array("project_name" => $projectName);
-            $notificationDb->sendNotificationToAdmin($userId, 'Request Assign Project', $notificationArr);
-        }
-
-        echo json_encode($response);
-    }
-
-} else if (strtolower($action) == 'requested project') {
-    if (!checkMandatoryParameter(array('action'))) {
-
-        $db = new Project();
-        $response = $db->fetchRequestedProject();
-        echo json_encode($response);
-    }
-
-} else if (strtolower($action) == 'assign requested project') {
-    if (!checkMandatoryParameter(array('action'))) {
-        $requestId = $_POST['id'];
-        $projectId = $_POST['project_id'];
-        $projectName = $_POST['project_name'];
-        $projectTypeId = $_POST['project_type_id'];
-        $userId = $_POST['created_by_id'];
-        $modifiedById = $_POST['modified_by_id'];
-
-        $db = new Project();
-        $result = $db->assignUserOnRequestedProject($projectId, $requestId, $projectTypeId, $userId, $modifiedById);
-        $response = array();
-
-        if ($result == EXIST) {
-            $response['id'] = 0;
-            $response['error'] = TRUE;
-            $response['message'] = "Project already assigned";
-        } else if ($result == QUERY_PROBLEM) {
-            $response['id'] = 0;
-            $response['error'] = TRUE;
-            $response['message'] = "Project not saved";
-        } else {
-            $response['id'] = $result;
-            $response['error'] = FALSE;
-            $response['message'] = "Successfully assigned to user";
-
-            $notificationDb = new SendNotification();
-            $notificationArr = array("project_name" => $projectName);
-            $notificationDb->sendNotificationToUser($userId, $modifiedById, 'Assign Project', $notificationArr);
-        }
-
-        echo json_encode($response);
-    }
-
-} else if (strtolower($action) == 'assign project') {
-    if (!checkMandatoryParameter(array('action'))) {
-
-        $projectId = $_POST['project_id'];
-        $projectName = $_POST['project_name'];
-        $projectTypeId = $_POST['project_type_id'];
-        $userId = $_POST['created_by_id'];
-        $modifiedById = $_POST['modified_by_id'];
-
-        $db = new Project();
-        $result = $db->assignProjectToUser($projectId, $projectTypeId, $userId, $modifiedById);
-        $response = array();
-
-        if ($result == EXIST) {
-            $response['id'] = 0;
-            $response['error'] = TRUE;
-            $response['message'] = "Project already assigned";
-        } else if ($result == QUERY_PROBLEM) {
-            $response['id'] = 0;
-            $response['error'] = TRUE;
-            $response['message'] = "Project not saved";
-        } else {
-            $response['id'] = $result;
-            $response['error'] = FALSE;
-            $response['message'] = "Successfully assigned to user";
-
-            $notificationDb = new SendNotification();
-            $notificationArr = array("project_name" => $projectName);
-            $notificationDb->sendNotificationToUser($userId, $modifiedById, 'Assign Project', $notificationArr);
-        }
-
-        echo json_encode($response);
-    }
-
 } else if (strtolower($action) == 'fetch_project_activity') {
     if (!checkMandatoryParameter(array('action'))) {
 
@@ -238,6 +136,17 @@ if (strtolower($action) == 'submit') {
 
         $db = new Project();
         $response = $db->fetchActivityType($projectId, $projectTypeId, $billingType);
+        echo json_encode($response);
+    }
+
+} else if (strtolower($action) == 'fetch_project') {
+    if (!checkMandatoryParameter(array('action'))) {
+
+        $searchText = $_POST['search_text'];
+        $pageNumber = $_POST['page_number'];
+        $db = new Project();
+        
+        $response = $db->fetchProject($pageNumber,$searchText);
         echo json_encode($response);
     }
 

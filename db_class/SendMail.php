@@ -11,7 +11,7 @@ class SendMail
     function sendPasswordToUser($email, $password)
     {}
     
-    function attendanceMail($attendanceDataArray,$userId){
+    function attendanceMail($attendanceDataArray,$userId,$mailSubject){
         include_once 'db_class/User.php';
         $userDb = new User();
         
@@ -25,7 +25,7 @@ class SendMail
         $to =  $userEmail;
         $BCC = '';
         // Subject
-        $subject = 'Attendance: ' . date("d M, y", strtotime($attendanceDataArray['date']));
+        $subject = $mailSubject.': ' . date("d M, y", strtotime($attendanceDataArray['date']));
         
         
         $message = '<html>
@@ -417,8 +417,8 @@ class SendMail
         // Subject
         $subject = 'Booking Request: ' . $bookingJson->trip_id . ',' . $bookingJson->user_booking_mode;
 
-        $message = 'Please process the following booking request by ' . $userName . ' and update in ESS for intimation <p></p>
-                   Members ' . $members . '<br>' . $userName . ' shall attach the related invoice billpayment receipt on this booking accordingly in ESS';
+        $message = 'Please process the following booking request by ' . $userName . ' and update in ESS for infomation <p></p>
+                   Members ' . $members . '<br>' . $userName . ' shall attach the related invoice bill payment receipt on this booking accordingly in ESS';
 
 
 

@@ -135,6 +135,36 @@ class Project
         }
     }
 
+    function fetchProject($pageNumber,$searchText){
+
+        $limit = 25;
+        if ((isset($pageNumber)) && ($pageNumber > 0)) {
+            $offest = ($pageNumber - 1) * $limit;
+        } else {
+            $offest = 0;
+        }
+
+        $response = array();
+
+        if ($searchText != ''){
+            $result = $this->con->query("SELECT  mzp.*, u.`name` FROM `master_zoho_project` as mzp JOIN `user` as u on mzp.`created_by_id` = u.`id` WHERE 
+        (mzp.`id` LIKE '%$searchText%' OR LOWER(mzp.`project_name`) like LOWER('%$searchText%') OR LOWER(u.`name`) LIKE LOWER('%$searchText%'))
+        AND  mzp.`is_active` = '$this->active' ORDER BY mzp.`id` DESC limit $offest , $limit");
+
+        }else {
+            $result = $this->con->query("SELECT  mzp.*, u.`name` FROM `master_zoho_project` as mzp JOIN `user` as u
+        on mzp.`created_by_id` = u.`id` WHERE mzp.`is_active` = '$this->active' ORDER BY mzp.`id` DESC limit $offest , $limit");
+        }
+
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                array_push($response, $row);
+            }
+        }
+
+        return $response;
+
+    }
 
     function insertProjectActivity($projectId, $projectTypeId, $activityJson, $userId, $createdById)
     {
@@ -162,7 +192,6 @@ class Project
         $this->con->query("INSERT INTO `activity_user` (`project_id`,`activity_id`,`activity_type_id`,`user_id`,`created_by_id`,
                     `created_date`) VALUES ('$projectId','$activityId','$activityTypeId','$userId','$createdById','$this->date')");
         
-
     }
 
     function insertProjectUser($projectId, $userId, $createdById)

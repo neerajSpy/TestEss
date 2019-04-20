@@ -239,15 +239,15 @@ class Leave
         return $lastInsertId;
     }
 
-    function generateLeaveRequestId($userId, $leaveTypeId, $startDate, $endDate, $leaveLocation, $reason, $description, $createdById, $durationValue, $status)
+    function generateLeaveRequestId($userId, $leaveTypeId, $startDate, $endDate, $leaveLocation, $reason, $description, $createdById, $duration, $status)
     {
 
-        $totalLeaves = $this->countUserLeaveAquireDays($startDate, $endDate, $durationValue);
+        $totalLeaves = $this->countUserLeaveAquireDays($startDate, $endDate, $duration);
         $totalDays = $this->getTotalLeaveDays($startDate, $endDate);
 
         $result = $this->con->query("INSERT into `user_leave_request` (`user_id`,`leave_type_id`,`total_days`,`total_leaves`,`start_date`,`end_date`,
         `duration`,`leave_location`,`reason`,`description`,`leave_status_id`,`applied_by_id`,`applied_date`) VALUES ('$userId','$leaveTypeId',
-        '$totalDays','$totalLeaves','$startDate','$endDate','$durationValue','$leaveLocation','$reason','$description','$status','$createdById',
+        '$totalDays','$totalLeaves','$startDate','$endDate','$duration','$leaveLocation','$reason','$description','$status','$createdById',
         '$this->date')");
 
         if ($result === TRUE) {

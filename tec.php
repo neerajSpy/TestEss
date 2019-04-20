@@ -10,10 +10,11 @@ include "db_class/Tec.php";
 $action = $_POST['action'];
 
 if (strtolower($action) == "delete") {
-    if (! checkMandatoryParameter(array(
+    if (!checkMandatoryParameter(array(
         'tec_entry_id',
         'user_id'
-    ))) {
+    ))
+    ) {
         $tecEntryId = $_POST['tec_entry_id'];
         $userId = $_POST['user_id'];
         $db = new Tec();
@@ -76,8 +77,7 @@ if (strtolower($action) == "delete") {
     }
 
     echo json_encode($response);
-} 
-else if (strtolower($action) == "admin_update_tec") {
+} else if (strtolower($action) == "admin_update_tec") {
     $tecId = $_POST['tec_id'];
     $tripId = $_POST['trip_id'];
     $createdById = $_POST['created_by_id'];
@@ -99,7 +99,7 @@ else if (strtolower($action) == "admin_update_tec") {
 
         include "db_class/SendNotification.php";
         $notificationDb = new SendNotification();
-        
+
 
         $tecStatus = "";
         if ($status == "draft") {
@@ -111,15 +111,15 @@ else if (strtolower($action) == "admin_update_tec") {
         } else {
             $tecStatus = "tec payment done";
         }
-        
+
         $notificationArr = array(
             "project_name" => $projectName,
             "trip id" => $tripId,
             "tec_id" => $tecId,
-            "status" =>$tecStatus
+            "status" => $tecStatus
         );
-        
-        $notificationDb->sendNotificationToUser($createdById, $userId,'Update Tec', $notificationArr);
+
+        $notificationDb->sendNotificationToUser($createdById, $userId, 'Update Tec', $notificationArr);
     }
 
     echo json_encode($response);
@@ -127,23 +127,23 @@ else if (strtolower($action) == "admin_update_tec") {
     $entryJson = json_decode($_POST['tec_json']);
     //if (! checkValidEntry('file', $entryJson)) {
 
-        $db = new Tec();
-        $result = $db->insertTecEntry('file', $entryJson);
+    $db = new Tec();
+    $result = $db->insertTecEntry('file', $entryJson);
 
-        $response = array();
-        if ($result) {
-            $id = $db->getLastTecentryInsertId();
-            $response['id'] = $id;
-            $response['tec_id'] = $entryJson->tec_id;
-            $response['error'] = FALSE;
-            $response['message'] = "Succesfully tec entry saved";
-        } else {
-            $response['error'] = TRUE;
-            $response['message'] = "Tec entry not updated";
-        }
+    $response = array();
+    if ($result) {
+        $id = $db->getLastTecentryInsertId();
+        $response['id'] = $id;
+        $response['tec_id'] = $entryJson->tec_id;
+        $response['error'] = FALSE;
+        $response['message'] = "Succesfully tec entry saved";
+    } else {
+        $response['error'] = TRUE;
+        $response['message'] = "Tec entry not updated";
+    }
 
-        echo json_encode($response);
-   // }
+    echo json_encode($response);
+    // }
 } elseif (strtolower($action) == "insert tec") {
     $roleId = $_POST['role_id'];
     $tripId = $_POST['id'];
@@ -156,7 +156,7 @@ else if (strtolower($action) == "admin_update_tec") {
 
     $db = new Tec();
     $result = $db->createTec($tripId, $createdById, $roleId, $projectId, $claimStartDate, $baseLocation, $siteLocation, $tripBookingJson);
- 
+
     $response = array();
     if ($result == EXIST) {
         $response['id'] = "0";
@@ -183,26 +183,22 @@ else if (strtolower($action) == "admin_update_tec") {
     // echo "result ".(int)$result;
 
     echo json_encode($response);
-}
-
-else if(strtolower($action) == "admin_tec_entry"){
+} else if (strtolower($action) == "admin_tec_entry") {
     $tripId = $_POST['id'];
     $tecId = $_POST['tec_id'];
     $date = $_POST['date'];
-    
-    $db = new Tec();
-    $response = $db->fetchTecEntryOnDate($tecId, $tripId,$date);
-    echo json_encode($response);
-}
 
-else if(strtolower($action) == "link_booking_tec"){
+    $db = new Tec();
+    $response = $db->fetchTecEntryOnDate($tecId, $tripId, $date);
+    echo json_encode($response);
+} else if (strtolower($action) == "link_booking_tec") {
     $tripBookingJson = json_decode($_POST['booking_json']);
     $tecId = $_POST['tec_id'];
     $createdById = $_POST['created_by_id'];
-    
+
     $db = new Tec();
     $result = (int)$db->insertTecEntryFromBooking($tecId, $createdById, $tripBookingJson);
-    
+
     $response = array();
     if ($result == EXIST) {
         $response['eror'] = true;
@@ -214,34 +210,34 @@ else if(strtolower($action) == "link_booking_tec"){
         $response['eror'] = false;
         $response['message'] = "Successfully booking link with tec";
     }
-    
+
     echo json_encode($response);
-}
-
-else if(strtolower($action) == "fetch_tec"){
-    $page = json_decode($_POST['page']);
-    $orderBy = $_POST['order_by'];
-    $orderType = $_POST['order_type'];
-
-    $db = new Tec();
-    $response = $db->fetchTec($page,$orderBy,$orderType);
-    echo json_encode($response);
-}
-
-else if(strtolower($action) == "search_tec"){
-    $page = json_decode($_POST['page']);
+} else if (strtolower($action) == "fetch_tec") {
+    $page = $_POST['page'];
+    $filterBy = $_POST['filter_by'];
     $searchText = $_POST['search_text'];
 
     $db = new Tec();
-    $response = $db->searchTec($page,$searchText);
+    $response = $db->fetchTec($page, $filterBy, $searchText);
     echo json_encode($response);
-}
+    
+} else if (strtolower($action) == "fetch_user_tec") {
+    $userId = $_POST['user_id'];
+    $page = $_POST['page'];
+    $filterBy = $_POST['filter_by'];
+    $searchText = $_POST['search_text'];
+
+    $db = new Tec();
+    $response = $db->fetchUserTec($page,$userId, $filterBy, $searchText);
+    echo json_encode($response);
+
+} 
 
 function checkValidEntry($file, $entryJson)
 {
     $error = FALSE;
 
-    if (! isset($_FILES[$file]["type"]) && ($entryJson->bill_amount > 100 && ! ($entryJson->entry_category == "Food - Boarding - Per Diem" || $entryJson->entry_category == "Local Travel - Public transport" || $entryJson->entry_category == "Fuel/Mileage Expenses - Own transport" || $entryJson->travel_mode == "Metro" || $entryJson->travel_mode == "Auto"))) {
+    if (!isset($_FILES[$file]["type"]) && ($entryJson->bill_amount > 100 && !($entryJson->entry_category == "Food - Boarding - Per Diem" || $entryJson->entry_category == "Local Travel - Public transport" || $entryJson->entry_category == "Fuel/Mileage Expenses - Own transport" || $entryJson->travel_mode == "Metro" || $entryJson->travel_mode == "Auto"))) {
         $error = TRUE;
     }
 
@@ -274,4 +270,5 @@ function checkMandatoryParameter($requiredFields)
     }
     return $error;
 }
+
 ?>

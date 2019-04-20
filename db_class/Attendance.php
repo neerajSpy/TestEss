@@ -61,7 +61,7 @@ class Attendance
         `status` = '$status' WHERE `date`= '$punchDate' AND `user_id` = '$userId'");
 
         if ($result === TRUE) {
-            $this->sendMail($userId, $punchDate);
+            $this->sendMail($userId, $punchDate,false);
             return $this->con->affected_rows;
         } else {
             return QUERY_PROBLEM;
@@ -81,7 +81,9 @@ class Attendance
                     '$this->dateTime','$this->dateTime','$userId','2','$remark')");
 
                 if ($result === TRUE) {
+                    $this->sendMail($userId, $date,true);
                     return $this->con->insert_id;
+
                 } else {
                     return QUERY_PROBLEM;
                 }
@@ -91,6 +93,7 @@ class Attendance
                    `attendance` ='$attendance',`remark`='$remark' WHERE `date` ='$date' AND `user_id` = '$userId'");
 
                 if ($result === TRUE) {
+                    $this->sendMail($userId, $date,true);
                     return $this->con->affected_rows;
                 } else {
                     return QUERY_PROBLEM;
@@ -162,13 +165,20 @@ class Attendance
     }
 
 
-    function sendMail($userId, $date)
+    function sendMail($userId, $date,$isManual)
     {
 
         include 'SendMail.php';
         $mailObj = new SendMail();
+        
+        if ($isManual){
+            $mailSubject = "Manual Attendance ";
+        }else{
+            $mailSubject = "Attendance ";
+        }
+        
         $attendanceData = $this->getAttendanceByDate($userId, $date);
-        $mailObj->attendanceMail($attendanceData, $userId);
+        $mailObj->attendanceMail($attendanceData, $userId,$mailSubject);
 
 
     }

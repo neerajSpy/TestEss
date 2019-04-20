@@ -14,6 +14,7 @@ class Tec
     private $deactive;
     private $basePath;
     private $directoryPath;
+    private $tecStatusArray;
 
     private $intercityTravel, $lodgingHotel;
 
@@ -32,6 +33,11 @@ class Tec
         $this->basePath = "http://ess.technitab.in" . $this->directoryPath;
         $this->active = IS_ACTIVE;
         $this->deactive = DEACTIVE;
+
+        $this->tecStatusArray = array("draft"=> 'draft',
+            'submit'=> 'submit',
+            'open' => 'open',
+            'paid'=> 'paid');
     }
 
     function createTec($tripId, $createdById, $roleId, $projectId, $claimStartDate, $baseLocation, $siteLocation, $tripBookingJson)
@@ -640,28 +646,43 @@ class Tec
     }
 
 
-    function fetchTec($page, $orderBy, $orderType)
+    function fetchTec($page,$filterBy,$searchText)
     {
 
-        if (!isset($orderType) || (sizeof(trim($orderType)) > 1) || !in_array($orderType, ["ASC", "DESC"])) {
+        /*if (!isset($orderType) || (sizeof(trim($orderType)) > 1) || !in_array($orderType, ["ASC", "DESC"])) {
             $orderType = "ASC";
         }
 
         if (!isset($orderBy) || (sizeof(trim($orderBy)) > 1) || !in_array($orderBy, ["project_id", "created_by_id"])) {
             $orderBy = "id";
-        }
+        }*/
 
         $limit = 25;
         if ((isset($page)) && ($page > 0)) {
             $offest = ($page - 1) * $limit;
         } else {
             $offest = 0;
-            $page = 1;
         }
 
         $response = array();
 
-        $result = $this->con->query("SELECT * FROM `emp_main_tec` ORDER BY $orderBy $orderType limit $offest , $limit");
+        if ($searchText != ''){
+            $result = $this->con->query("SELECT emt.*, mzp.`project_name`, u.`name` FROM `emp_main_tec` as emt JOIN `master_zoho_project` as mzp ON 
+        emt.`project_id` = mzp.`id` JOIN `user` as u on emt.`created_by_id` = u.`id` WHERE 
+        (emt.`id` LIKE '%$searchText%' OR mzp.`project_name` like LOWER('%$searchText%') OR LOWER(u.`name`) LIKE LOWER('%$searchText%'))
+        AND emt.`status` != 'draft' AND emt.`is_active` = '$this->active' ORDER BY emt.`id` DESC limit $offest , $limit");
+
+        }else if($filterBy != ''){
+            $result = $this->con->query("SELECT emt.*, mzp.`project_name`, u.`name` FROM `emp_main_tec` as emt JOIN `master_zoho_project` as mzp ON 
+        emt.`project_id` = mzp.`id` JOIN `user` as u on emt.`created_by_id` = u.`id` WHERE emt.`status` = LOWER('$filterBy') 
+        ORDER BY emt.`id` DESC limit $offest , $limit");
+
+        }else {
+            $result = $this->con->query("SELECT emt.*, mzp.`project_name`, u.`name` FROM `emp_main_tec` as emt JOIN `master_zoho_project` as mzp ON 
+        emt.`project_id` = mzp.`id` JOIN `user` as u on emt.`created_by_id` = u.`id` WHERE emt.`status` != 'draft' ORDER BY emt.`id` DESC 
+        limit $offest , $limit");
+        }
+
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
                 array_push($response, $row);
@@ -672,18 +693,36 @@ class Tec
     }
 
 
-    function searchTec($page,$searchText){
+    function fetchUserTec($page,$userId,$filterBy,$searchText)
+    {
 
         $limit = 25;
         if ((isset($page)) && ($page > 0)) {
             $offest = ($page - 1) * $limit;
         } else {
             $offest = 0;
-            $page = 1;
         }
 
         $response = array();
-        $result = $this->con->query("SELECT * FROM `emp_main_tec` WHERE `id` = '$searchText' limit $offest , $limit");
+
+        if ($searchText != ''){
+            $result = $this->con->query("SELECT emt.*, mzp.`project_name`, u.`name` FROM `emp_main_tec` as emt JOIN `master_zoho_project` as mzp ON 
+        emt.`project_id` = mzp.`id` JOIN `user` as u on emt.`created_by_id` = u.`id` WHERE 
+        (emt.`id` LIKE '%$searchText%' OR mzp.`project_name` like LOWER('%$searchText%') OR LOWER(u.`name`) LIKE LOWER('%$searchText%'))
+        AND emt.`created_by_id` = '$userId' AND emt.`is_active` = '$this->active' ORDER BY emt.`id` DESC limit $offest , $limit");
+
+        }else if($filterBy != ''){
+            $result = $this->con->query("SELECT emt.*, mzp.`project_name`, u.`name` FROM `emp_main_tec` as emt JOIN `master_zoho_project` as mzp ON 
+        emt.`project_id` = mzp.`id` JOIN `user` as u on emt.`created_by_id` = u.`id` WHERE emt.`created_by_id` = '$userId' 
+        AND emt.`status` = LOWER('$filterBy') 
+        ORDER BY emt.`id` DESC limit $offest , $limit");
+
+        }else {
+            $result = $this->con->query("SELECT emt.*, mzp.`project_name`, u.`name` FROM `emp_main_tec` as emt JOIN `master_zoho_project` as mzp ON 
+        emt.`project_id` = mzp.`id` JOIN `user` as u on emt.`created_by_id` = u.`id` WHERE  emt.`created_by_id` = '$userId' ORDER BY emt.`id` DESC 
+        limit $offest , $limit");
+        }
+
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
                 array_push($response, $row);
