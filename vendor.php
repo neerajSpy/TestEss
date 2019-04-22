@@ -152,8 +152,9 @@ else if (strtolower($action) == 'approve') {
 else if (strtolower($action) == 'fetch_vendor') {
     if (! checkMandatoryParameter(array('action'))) {
         $page = $_POST['page'];
+        $searchText = $_POST['search_text'];
         $db = new Vendor();
-        $response = $db->fetchVendor($page);
+        $response = $db->fetchVendor($page,$searchText);
         echo json_encode($response);
     }
 }

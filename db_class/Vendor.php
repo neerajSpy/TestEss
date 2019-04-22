@@ -403,7 +403,7 @@ class Vendor
         }
     }
 
-    function fetchVendor($page){
+    function fetchVendor($page,$searchText){
 
         $limit = 25;
         if ((isset($page)) && ($page > 0)) {
@@ -414,7 +414,15 @@ class Vendor
 
         $response = array();
 
-        $result = $this->con->query("SELECT mzv.*, u.`name` FROM `master_zoho_vendor` as mzv JOIN `user` as u ON  mzv.`created_by_id` = u.`id` ORDER BY mzv.`id` DESC limit $offest , $limit");
+        if ($searchText == '') {
+            $result = $this->con->query("SELECT mzv.*, u.`name` FROM `master_zoho_vendor` as mzv JOIN `user` as u ON  mzv.`created_by_id` = u.`id` ORDER BY mzv.`id` DESC limit $offest , $limit");
+        }else{
+            $result = $this->con->query("SELECT mzv.*, u.`name` FROM `master_zoho_vendor` as mzv JOIN `user` 
+             as u ON  mzv.`created_by_id` = u.`id` WHERE mzv.`id` LIKE '%$searchText%' OR LOWER(mzv.`display_name`) 
+             LIKE LOWER('%$searchText%') OR LOWER(mzv.`billing_state`) LIKE LOWER('%$searchText%') OR 
+             LOWER(mzv.`billing_city`) LIKE LOWER('%$searchText%') OR LOWER(mzv.`district`) LIKE LOWER('%$searchText%') 
+             ORDER BY mzv.`id` DESC limit $offest , $limit");
+        }
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
                 $gst_treatment = $row['gst_treatment'];
