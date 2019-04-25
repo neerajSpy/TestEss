@@ -47,6 +47,52 @@ class SendMail
         return $this->sendEmail($from, $to, $CC, $BCC, $message, $subject);
     }
 
+
+    function timesheetMail($userId,$date,$timesheetDuration,$projectJson,$attendanceData){
+        include_once 'db_class/User.php';
+        $userDb = new User();
+
+        $userEmail = $userDb->getTempEmailById($userId);
+        $userName = $userDb->getNameByUserId($userId);
+        $employeeId = $userDb->getRoleIdById($userId);
+
+        $from = 'no-reply@technitab.com';
+        $to = 'hr.technitab@gmail.com'; // note the comma
+        $CC =  $userEmail;
+        $BCC = '';
+
+        $subject = 'Time sheet submission: '.$employeeId.' - '.$userName;
+
+
+        $timesheetHTML = "";
+        foreach ($projectJson as $value) {
+            $timesheetHTML .= ' <b>Project:</b> '.$value->project.' <b> Activity:</b> '.$value->activity.' <b> Hours:</b> '.$value->time_spent.'<b> Description:</b> '.$value->description.'<br>';
+        }
+        
+        $attendanceHTML = "";
+        if ($attendanceData['punch_in'] != ''){
+            $attendanceHTML .= '<b>Attendance:</b> '.$attendanceData['punch_in'].' - '.$attendanceData['punch_out'];
+        }else{
+            $attendanceHTML .= '<b>Manual Attendance:</b> '.$attendanceData['manual_punch_in'].' - '.$attendanceData['manual_punch_out'];
+        }
+
+        $message = '<html>
+                      <body>
+                        <p>' . $userName . ' has submitted timesheet of this ' .$date. ' as per information below </p>
+                        '.$attendanceHTML.'<br>
+                        <b>Attendance duration:</b> ' . $attendanceData['attendance_duration'] . '<br>
+                        <b>Timesheet duration:</b> ' . $timesheetDuration . '<br>
+                        '.$timesheetHTML.'
+                        <p></p>
+                        Regards.<br>
+                        Ess App
+                        </body>
+                        </html>
+                        ';
+        return $this->sendEmail($from, $to, $CC, $BCC, $message, $subject);
+
+    }
+
     function leaveRequest($leaveJson, $totalDays, $entitledLeave, $usedLeave, $balanceLeave)
     {
         include_once 'db_class/User.php';
