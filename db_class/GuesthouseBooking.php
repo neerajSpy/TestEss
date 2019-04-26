@@ -46,9 +46,10 @@ class GuesthouseBooking
         $paidVia = $bookingJson->paid_via;
         $createdById = $bookingJson->created_by_id;
         $referenceNum = $bookingJson->reference_num;
+        $rentAmount = !isset($bookingJson->rent_amount)?0:$bookingJson->rent_amount;
 
-        $result = $this->con->query("INSERT INTO `guest_bookings` (`check_in`,`check_out`,`paid_via`,`reference_num`,`booking_status_id`,`created_by_id`,`created_date`) 
-            VALUES ('$checkIn','$checkOut','$paidVia','$referenceNum','".$this->bookingStatusArray['booked']."','$createdById','$this->date')");
+        $result = $this->con->query("INSERT INTO `guest_bookings` (`check_in`,`check_out`,`rent_amount`,`paid_via`,`reference_num`,`booking_status_id`,`created_by_id`,`created_date`) 
+            VALUES ('$checkIn','$checkOut','$rentAmount','$paidVia','$referenceNum','".$this->bookingStatusArray['booked']."','$createdById','$this->date')");
 
         if ($result === TRUE) {
             return $this->con->insert_id;
