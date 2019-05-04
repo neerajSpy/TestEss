@@ -90,6 +90,7 @@ class Leave
                 $this->approveLeaveMail($approvedById,$leaveRequestId);
             }
         }
+        
         return $result;
     }
 

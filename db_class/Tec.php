@@ -685,6 +685,8 @@ class Tec
 
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
+                $totalAmount = $this->getTotalTecAmount($row['id']);
+                $row['total_amount'] = $totalAmount;
                 array_push($response, $row);
             }
         }
@@ -725,6 +727,8 @@ class Tec
 
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
+                $totalAmount = $this->getTotalTecAmount($row['id']);
+                $row['total_amount'] = $totalAmount;
                 array_push($response, $row);
             }
         }
